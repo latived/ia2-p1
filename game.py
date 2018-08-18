@@ -7,8 +7,8 @@ import random, pygame, sys
 from pygame.locals import *
 
 FPS = 15
-WINDOWIDTH = 1080
-WINDOHEIGHT = 720
+WINDOWWIDTH = 1080
+WINDOWHEIGHT = 720
 BOARDWIDTH = 640
 BOARDHEIGHT = 480
 CELLSIZE = 20
@@ -26,6 +26,8 @@ DARKGREEN = (  0, 155,   0)
 DARKGRAY  = ( 40,  40,  40)
 BGCOLOR = BLACK
 
+TEXTCOLOR = WHITE
+
 UP = 'up'
 DOWN = 'down'
 LEFT = 'left'
@@ -38,7 +40,7 @@ def main():
 
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
-    DISPLAYSURF = pygame.display.set_mode((WINDOWIDTH, WINDOHEIGHT))
+    DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
     BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
     pygame.display.set_caption('DOT-ATTACK')
 
@@ -103,7 +105,7 @@ def runGame():
         drawGrid()
         drawDot(dotPlayer)
         drawNPC(npc)
-        # drawScore(len(dotPlayer) - 3)
+        drawStatus(None, None)
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 
@@ -187,11 +189,31 @@ def showGameOverScreen():
             pygame.event.get() # clear event queue
             return
 
-def drawScore(score):
-    scoreSurf = BASICFONT.render('Score: %s' % (score), True, WHITE)
-    scoreRect = scoreSurf.get_rect()
-    scoreRect.topleft = (BOARDWIDTH - 120, 10)
-    DISPLAYSURF.blit(scoreSurf, scoreRect)
+def drawStatus(info_player, info_npc):
+
+    # title info text
+    playerSurf = BASICFONT.render('Player Info', True, TEXTCOLOR)
+    playerRect = playerSurf.get_rect()
+    playerRect.topleft = (BOARDWIDTH + 50, 20)
+    DISPLAYSURF.blit(playerSurf, playerRect)
+
+    # add separator
+    pygame.draw.line(DISPLAYSURF,
+                     DARKGRAY,
+                     (BOARDWIDTH + 50, 50),
+                     (BOARDWIDTH + 150, 50))
+
+    # npc info text
+    npcSurf = BASICFONT.render('NPC Info', True, TEXTCOLOR)
+    npcRect = npcSurf.get_rect()
+    npcRect.topleft = (BOARDWIDTH + 50, BOARDHEIGHT//2)
+    DISPLAYSURF.blit(npcSurf, npcRect)
+
+    # add separator
+    pygame.draw.line(DISPLAYSURF,
+                     DARKGRAY,
+                     (BOARDWIDTH + 50, BOARDHEIGHT//2 + 30),
+                     (BOARDWIDTH + 150, BOARDHEIGHT//2 + 30))
 
 
 def drawDot(dotCoords):
