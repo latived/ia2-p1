@@ -7,13 +7,15 @@ import random, pygame, sys
 from pygame.locals import *
 
 FPS = 15
-WINDOWWIDTH = 640
-WINDOWHEIGHT = 480
+WINDOWIDTH = 1080
+WINDOHEIGHT = 720
+BOARDWIDTH = 640
+BOARDHEIGHT = 480
 CELLSIZE = 20
-assert WINDOWWIDTH % CELLSIZE == 0, "Window width must be a multiple of cell size."
-assert WINDOWHEIGHT % CELLSIZE == 0, "Window height must be a multiple of cell size."
-CELLWIDTH = int(WINDOWWIDTH / CELLSIZE)
-CELLHEIGHT = int(WINDOWHEIGHT / CELLSIZE)
+assert BOARDWIDTH % CELLSIZE == 0, "Window width must be a multiple of cell size."
+assert BOARDHEIGHT % CELLSIZE == 0, "Window height must be a multiple of cell size."
+CELLWIDTH = int(BOARDWIDTH / CELLSIZE)
+CELLHEIGHT = int(BOARDHEIGHT / CELLSIZE)
 
 #             R    G    B
 WHITE     = (255, 255, 255)
@@ -36,7 +38,7 @@ def main():
 
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
-    DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
+    DISPLAYSURF = pygame.display.set_mode((WINDOWIDTH, WINDOHEIGHT))
     BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
     pygame.display.set_caption('DOT-ATTACK')
 
@@ -109,7 +111,7 @@ def runGame():
 def drawPressKeyMsg():
     pressKeySurf = BASICFONT.render('Press a key to play.', True, DARKGRAY)
     pressKeyRect = pressKeySurf.get_rect()
-    pressKeyRect.topleft = (WINDOWWIDTH - 200, WINDOWHEIGHT - 30)
+    pressKeyRect.topleft = (BOARDWIDTH - 200, BOARDHEIGHT - 30)
     DISPLAYSURF.blit(pressKeySurf, pressKeyRect)
 
 
@@ -136,12 +138,12 @@ def showStartScreen():
         DISPLAYSURF.fill(BGCOLOR)
         rotatedSurf1 = pygame.transform.rotate(titleSurf1, degrees1)
         rotatedRect1 = rotatedSurf1.get_rect()
-        rotatedRect1.center = (WINDOWWIDTH / 2, WINDOWHEIGHT / 2)
+        rotatedRect1.center = (BOARDWIDTH / 2, BOARDHEIGHT / 2)
         DISPLAYSURF.blit(rotatedSurf1, rotatedRect1)
 
         rotatedSurf2 = pygame.transform.rotate(titleSurf2, degrees2)
         rotatedRect2 = rotatedSurf2.get_rect()
-        rotatedRect2.center = (WINDOWWIDTH / 2, WINDOWHEIGHT / 2)
+        rotatedRect2.center = (BOARDWIDTH / 2, BOARDHEIGHT / 2)
         DISPLAYSURF.blit(rotatedSurf2, rotatedRect2)
 
         drawPressKeyMsg()
@@ -170,8 +172,8 @@ def showGameOverScreen():
     overSurf = gameOverFont.render('Over', True, WHITE)
     gameRect = gameSurf.get_rect()
     overRect = overSurf.get_rect()
-    gameRect.midtop = (WINDOWWIDTH / 2, 10)
-    overRect.midtop = (WINDOWWIDTH / 2, gameRect.height + 10 + 25)
+    gameRect.midtop = (BOARDWIDTH / 2, 10)
+    overRect.midtop = (BOARDWIDTH / 2, gameRect.height + 10 + 25)
 
     DISPLAYSURF.blit(gameSurf, gameRect)
     DISPLAYSURF.blit(overSurf, overRect)
@@ -188,7 +190,7 @@ def showGameOverScreen():
 def drawScore(score):
     scoreSurf = BASICFONT.render('Score: %s' % (score), True, WHITE)
     scoreRect = scoreSurf.get_rect()
-    scoreRect.topleft = (WINDOWWIDTH - 120, 10)
+    scoreRect.topleft = (BOARDWIDTH - 120, 10)
     DISPLAYSURF.blit(scoreSurf, scoreRect)
 
 
@@ -209,10 +211,10 @@ def drawNPC(coord):
 
 
 def drawGrid():
-    for x in range(0, WINDOWWIDTH, CELLSIZE): # draw vertical lines
-        pygame.draw.line(DISPLAYSURF, DARKGRAY, (x, 0), (x, WINDOWHEIGHT))
-    for y in range(0, WINDOWHEIGHT, CELLSIZE): # draw horizontal lines
-        pygame.draw.line(DISPLAYSURF, DARKGRAY, (0, y), (WINDOWWIDTH, y))
+    for x in range(0, BOARDWIDTH + 1, CELLSIZE): # draw vertical lines
+        pygame.draw.line(DISPLAYSURF, DARKGRAY, (x, 0), (x, BOARDHEIGHT))
+    for y in range(0, BOARDHEIGHT + 1, CELLSIZE): # draw horizontal lines
+        pygame.draw.line(DISPLAYSURF, DARKGRAY, (0, y), (BOARDWIDTH, y))
 
 
 if __name__ == '__main__':
