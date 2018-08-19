@@ -87,22 +87,23 @@ def runGame():
                     elif event.key == K_ESCAPE:
                         terminate()
 
+        if gameStarted:
+            # TODO: put this print below in a log section at game window
+            # TODO: move again if the chosen move wasn't valid (ie, would pass the board edges)
+            if dotTurn:
+                # move the dot in the direction it is moving, obviously
+                if move(direction, dotPlayer.position):  # only false at first game start
+                    dotPlayer.movement_points -= 1
+                print("{}: ({}, {})".format(dotPlayer.name, dotPlayer.position['x'], dotPlayer.position['y']))
+            else:
+                move(getRandomDirection(), npcPlayer.position)
+                npcPlayer.movement_points -= 1
+                print("{}: ({}, {})".format(npcPlayer.name, npcPlayer.position['x'], npcPlayer.position['y']))
+
+            # change turn
+            dotTurn = not dotTurn
+
         gameStarted = True  # not necessary anymore after the game starts
-
-        # TODO: put this print below in a log section at game window
-        # TODO: move again if the chosen move wasn't valid (ie, would pass the board edges)
-        if dotTurn:
-            # move the dot in the direction it is moving, obviously
-            if move(direction, dotPlayer.position):  # only false at first game start
-                dotPlayer.movement_points -= 1
-            print("{}: ({}, {})".format(dotPlayer.name, dotPlayer.position['x'], dotPlayer.position['y']))
-        else:
-            move(getRandomDirection(), npcPlayer.position)
-            npcPlayer.movement_points -= 1
-            print("{}: ({}, {})".format(npcPlayer.name, npcPlayer.position['x'], npcPlayer.position['y']))
-
-        # change turn
-        dotTurn = not dotTurn
 
         DISPLAYSURF.fill(BGCOLOR)
         drawGrid()
