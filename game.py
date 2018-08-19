@@ -37,13 +37,15 @@ RIGHT = 'right'
 HEAD = 0 # syntactic sugar: index of the dot's head
 
 def main():
-    global FPSCLOCK, DISPLAYSURF, BASICFONT, RESET_SURF, RESET_RECT, QUIT_SURF, QUIT_RECT
+    global FPSCLOCK, DISPLAYSURF, BASICFONT, STATUSFONT
+    global RESET_SURF, RESET_RECT, QUIT_SURF, QUIT_RECT
 
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
     pygame.display.set_caption('DOT-ATTACK')
     BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
+    STATUSFONT = pygame.font.Font('freesansbold.ttf', 14)
 
     # store options
     RESET_SURF, RESET_RECT = makeText(BASICFONT, 'Reset game', TEXTCOLOR, TILECOLOR, BOARDWIDTH + 50, BOARDHEIGHT + 50)
@@ -58,7 +60,9 @@ def main():
 def runGame():
     # Set a random start point for dot and NPC-dot
     dotPlayer = getRandomLocation()
-    npc = getRandomLocation()
+    npcPlayer = getRandomLocation()
+
+    infoDotPlayer = {'mp': 100}
 
     while True: # main game loop
         direction = None
@@ -106,11 +110,13 @@ def runGame():
 
         print(dotPlayer)
 
+        infoDotPlayer['mp'] -= 1
+
         DISPLAYSURF.fill(BGCOLOR)
         drawGrid()
         drawDot(dotPlayer)
-        drawNPC(npc)
-        drawStatus(None, None)
+        drawNPC(npcPlayer)
+        drawStatus(infoDotPlayer, None)
         drawOptions()
         pygame.display.update()
         FPSCLOCK.tick(FPS)
@@ -210,10 +216,16 @@ def drawStatus(info_player, info_npc):
     DISPLAYSURF.blit(playerSurf, playerRect)
 
     # add separator
-    pygame.draw.line(DISPLAYSURF,
-                     DARKGRAY,
-                     (BOARDWIDTH + 50, 50),
-                     (BOARDWIDTH + 150, 50))
+    pygame.draw.line(DISPLAYSURF, DARKGRAY, (BOARDWIDTH + 50, 50), (BOARDWIDTH + 150, 50))
+
+    # add attributes (ap, mp, atks, ...)
+    mpSurf, mpRect = makeText(STATUSFONT,
+                              'Movement points: {}'.format(info_player['mp']),
+                              TEXTCOLOR,
+                              None,
+                              BOARDWIDTH  + 60,
+                              75)
+    DISPLAYSURF.blit(mpSurf, mpRect)
 
     # npc info text
     npcSurf, npcRect = makeText(BASICFONT, 'NPC Info', TEXTCOLOR, None, BOARDWIDTH + 50, BOARDHEIGHT//2)
