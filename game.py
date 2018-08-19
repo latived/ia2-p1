@@ -6,6 +6,8 @@
 import random, pygame, sys
 from pygame.locals import *
 
+from player import Player
+
 FPS = 15
 WINDOWWIDTH = 1080
 WINDOWHEIGHT = 720
@@ -59,10 +61,8 @@ def main():
 
 def runGame():
     # Set a random start point for dot and NPC-dot
-    dotPlayer = getRandomLocation()
-    npcPlayer = getRandomLocation()
-
-    infoDotPlayer = {'mp': 100}
+    dotPlayer = Player('latived', getRandomLocation(), 100, 50, None)
+    npcPlayer = Player('npc_01', getRandomLocation(), 100, 50, None)
 
     while True: # main game loop
         direction = None
@@ -85,38 +85,36 @@ def runGame():
 
         # move the dot by adding a segment in the direction it is moving
         if direction == UP:
-            dotPlayer['y'] -= 1
+            dotPlayer.position['y'] -= 1
         elif direction == DOWN:
-            dotPlayer['y'] += 1
+            dotPlayer.position['y'] += 1
         elif direction == LEFT:
-            dotPlayer['x'] -= 1
+            dotPlayer.position['x'] -= 1
         elif direction == RIGHT:
-            dotPlayer['x'] += 1
+            dotPlayer.position['x'] += 1
 
-        print(dotPlayer)
+        # if try to move pass edges, stay at the actual cell
+        if dotPlayer.position['x'] == -1:
+            dotPlayer.position['x'] = 0
 
-        # if try to move pass edges, stay at the cell
-        if dotPlayer['x'] == -1:
-            dotPlayer['x'] = 0
+        if dotPlayer.position['y'] == -1:
+            dotPlayer.position['y'] = 0
 
-        if dotPlayer['y'] == -1:
-            dotPlayer['y'] = 0
+        if dotPlayer.position['x'] == CELLWIDTH:
+            dotPlayer.position['x'] = CELLWIDTH - 1
 
-        if dotPlayer['x'] == CELLWIDTH:
-            dotPlayer['x'] = CELLWIDTH - 1
+        if dotPlayer.position['y'] == CELLHEIGHT:
+            dotPlayer.position['y'] = CELLHEIGHT - 1
 
-        if dotPlayer['y'] == CELLHEIGHT:
-            dotPlayer['y'] = CELLHEIGHT - 1
+        print(dotPlayer.position)
 
-        print(dotPlayer)
-
-        infoDotPlayer['mp'] -= 1
+        dotPlayer.movement_points -= 1
 
         DISPLAYSURF.fill(BGCOLOR)
         drawGrid()
-        drawDot(dotPlayer)
-        drawNPC(npcPlayer)
-        drawStatus(infoDotPlayer, None)
+        drawDot(dotPlayer.position)
+        drawNPC(npcPlayer.position)
+        drawStatus(dotPlayer, npcPlayer)
         drawOptions()
         pygame.display.update()
         FPSCLOCK.tick(FPS)
@@ -209,10 +207,12 @@ def makeText(font, text, color, bgcolor, top, left):
     textRect.topleft = (top, left)
     return (textSurf, textRect)
 
-def drawStatus(info_player, info_npc):
+def drawStatus(dotPlayer, dotNpc):
+
+    playerName = "Player {}"
 
     # title info text
-    playerSurf, playerRect = makeText(BASICFONT, 'Player Info', TEXTCOLOR, None, BOARDWIDTH + 50, 20)
+    playerSurf, playerRect = makeText(BASICFONT, playerName.format(dotPlayer.name), TEXTCOLOR, None, BOARDWIDTH + 50, 20)
     DISPLAYSURF.blit(playerSurf, playerRect)
 
     # add separator
@@ -220,7 +220,7 @@ def drawStatus(info_player, info_npc):
 
     # add attributes (ap, mp, atks, ...)
     mpSurf, mpRect = makeText(STATUSFONT,
-                              'Movement points: {}'.format(info_player['mp']),
+                              'Movement points: {}'.format(dotPlayer.movement_points),
                               TEXTCOLOR,
                               None,
                               BOARDWIDTH  + 60,
@@ -228,7 +228,7 @@ def drawStatus(info_player, info_npc):
     DISPLAYSURF.blit(mpSurf, mpRect)
 
     # npc info text
-    npcSurf, npcRect = makeText(BASICFONT, 'NPC Info', TEXTCOLOR, None, BOARDWIDTH + 50, BOARDHEIGHT//2)
+    npcSurf, npcRect = makeText(BASICFONT, playerName.format(dotNpc.name), TEXTCOLOR, None, BOARDWIDTH + 50, BOARDHEIGHT//2)
     DISPLAYSURF.blit(npcSurf, npcRect)
 
     # add separator
