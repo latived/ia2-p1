@@ -128,7 +128,7 @@ def doPlayerTurn(player, direction, turnCounter):
                                                 player.position['x'], player.position['y']))
         return True
     else:
-        print("\tCouldn't move. Try again.")
+        print("\t{}: move to off the board is invalid. Try again.".format(player.name))
         return False
 
 
