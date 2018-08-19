@@ -67,6 +67,7 @@ def runGame():
     gameStarted = False  # inhibit necessity for one move before the game starts
 
     dotTurn = True # control if dot or npc can move
+    turnCounter = 0
 
     while True: # main game loop
         direction = None  # inhibit continuous movement
@@ -87,23 +88,35 @@ def runGame():
                     elif event.key == K_ESCAPE:
                         terminate()
 
+        # TODO: put these print below in a log section at game window
         if gameStarted:
-            # TODO: put this print below in a log section at game window
-            # TODO: move again if the chosen move wasn't valid (ie, would pass the board edges)
+            turnCounter += 1
+            print("Turn {}".format(turnCounter))
+
+
             if dotTurn:
+                previousPos = dotPlayer.position.copy()
                 # move the dot in the direction it is moving, obviously
                 if move(direction, dotPlayer.position):  # only false at first game start
                     dotPlayer.movement_points -= 1
-                    print("{}: ({}, {})".format(dotPlayer.name, dotPlayer.position['x'], dotPlayer.position['y']))
+                    print("\t{}: ({}, {}) to ({}, {})".format(dotPlayer.name,
+                                                            previousPos['x'], previousPos['y'],
+                                                            dotPlayer.position['x'], dotPlayer.position['y']))
                 else:
-                    print("Couldn't move. Try again.")
+                    print("\tCouldn't move. Try again.")
+                    turnCounter -= 1
                     continue
             else:
+                previousPos = npcPlayer.position.copy()
+
                 if move(getRandomDirection(), npcPlayer.position):
                     npcPlayer.movement_points -= 1
-                    print("{}: ({}, {})".format(npcPlayer.name, npcPlayer.position['x'], npcPlayer.position['y']))
+                    print("\t{}: ({}, {}) to ({}, {})".format(npcPlayer.name,
+                                                            previousPos['x'], previousPos['y'],
+                                                            npcPlayer.position['x'], npcPlayer.position['y']))
                 else:
                     print("Couldn't move. Try again.")
+                    turnCounter -= 1
                     continue
 
             if not dotTurn:
