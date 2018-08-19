@@ -126,8 +126,8 @@ def runGame():
         drawDot(dotPlayer.position)
         drawNPC(dotNpc.position)
 
-        drawStatus(dotPlayer, BOARDWIDTH + 50, 20, (BOARDWIDTH + 50, 50), (BOARDWIDTH + 150, 50))
-        drawStatus(dotNpc, BOARDWIDTH + 50, BOARDHEIGHT//2, (BOARDWIDTH + 50, BOARDHEIGHT//2 + 30), (BOARDWIDTH + 150, BOARDHEIGHT//2 + 30))
+        drawStatus(dotPlayer, BOARDWIDTH + 10, 20, (BOARDWIDTH + 10, 50), (BOARDWIDTH + 150, 50))
+        drawStatus(dotNpc, BOARDWIDTH + 10, BOARDHEIGHT//2, (BOARDWIDTH + 10, BOARDHEIGHT//2 + 30), (BOARDWIDTH + 150, BOARDHEIGHT//2 + 30))
 
         drawOptions()
 
@@ -284,15 +284,57 @@ def drawStatus(player, namePosx, namePosy, lineStart, lineEnd):
     # add separator
     pygame.draw.line(DISPLAYSURF, DARKGRAY, lineStart, lineEnd)
 
-    # add attributes (ap, mp, atks, ...)
+    # add attributes (vp, ap, mp, atks, ...)
+
+    gapFromNamePosx = 10
+
+    # ap
+    vpSurf, vpRect = makeText(STATUSFONT,
+                              'Vitality points: {}'.format(player.vitalityPoints),
+                              TEXTCOLOR,
+                              None,
+                              namePosx + gapFromNamePosx,
+                              namePosy + 55)
+
+    # ap
+    apSurf, apRect = makeText(STATUSFONT,
+                              'Action points: {}'.format(player.actionPoints),
+                              TEXTCOLOR,
+                              None,
+                              namePosx + gapFromNamePosx,
+                              namePosy + 55 + 15)
+
+    # mp
     mpSurf, mpRect = makeText(STATUSFONT,
                               'Movement points: {}'.format(player.movementPoints),
                               TEXTCOLOR,
                               None,
-                              namePosx + 10,
-                              namePosy + 55)
+                              namePosx + gapFromNamePosx,
+                              namePosy + 55 + 30)
 
+
+    atkHorSurf, atkHorRect = makeText(STATUSFONT,
+                                      'Horizontal attack: takes {} VPs in any dot at the range {}.'.
+                                      format(player.atkTypes['horizontal'][0], player.atkTypes['horizontal'][1]),
+                                      TEXTCOLOR,
+                                      None,
+                                      namePosx + gapFromNamePosx,
+                                      namePosy + 55 + 45)
+
+    atkVerSurf, atkVerRect = makeText(STATUSFONT,
+                                      'Vertical attack: takes {} VPs in any dot at the range {}.'.
+                                      format(player.atkTypes['vertical'][0], player.atkTypes['vertical'][1]),
+                                      TEXTCOLOR,
+                                      None,
+                                      namePosx + gapFromNamePosx,
+                                      namePosy + 55 + 60)
+
+    DISPLAYSURF.blit(vpSurf, vpRect)
+    DISPLAYSURF.blit(apSurf, apRect)
     DISPLAYSURF.blit(mpSurf, mpRect)
+    DISPLAYSURF.blit(atkHorSurf, atkHorRect)
+    DISPLAYSURF.blit(atkVerSurf, atkVerRect)
+
 
 
 def drawOptions():
