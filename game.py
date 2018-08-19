@@ -189,12 +189,18 @@ def showGameOverScreen():
             pygame.event.get() # clear event queue
             return
 
+
+def makeText(font, text, color, bgcolor, top, left):
+    # create the surface and rect objects for some text
+    textSurf = font.render(text, True, color, bgcolor)
+    textRect = textSurf.get_rect()
+    textRect.topleft = (top, left)
+    return (textSurf, textRect)
+
 def drawStatus(info_player, info_npc):
 
     # title info text
-    playerSurf = BASICFONT.render('Player Info', True, TEXTCOLOR)
-    playerRect = playerSurf.get_rect()
-    playerRect.topleft = (BOARDWIDTH + 50, 20)
+    playerSurf, playerRect = makeText(BASICFONT, 'Player Info', TEXTCOLOR, None, BOARDWIDTH + 50, 20)
     DISPLAYSURF.blit(playerSurf, playerRect)
 
     # add separator
@@ -204,9 +210,7 @@ def drawStatus(info_player, info_npc):
                      (BOARDWIDTH + 150, 50))
 
     # npc info text
-    npcSurf = BASICFONT.render('NPC Info', True, TEXTCOLOR)
-    npcRect = npcSurf.get_rect()
-    npcRect.topleft = (BOARDWIDTH + 50, BOARDHEIGHT//2)
+    npcSurf, npcRect = makeText(BASICFONT, 'NPC Info', TEXTCOLOR, None, BOARDWIDTH + 50, BOARDHEIGHT//2)
     DISPLAYSURF.blit(npcSurf, npcRect)
 
     # add separator
