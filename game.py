@@ -94,11 +94,17 @@ def runGame():
                 # move the dot in the direction it is moving, obviously
                 if move(direction, dotPlayer.position):  # only false at first game start
                     dotPlayer.movement_points -= 1
-                print("{}: ({}, {})".format(dotPlayer.name, dotPlayer.position['x'], dotPlayer.position['y']))
+                    print("{}: ({}, {})".format(dotPlayer.name, dotPlayer.position['x'], dotPlayer.position['y']))
+                else:
+                    print("Couldn't move. Try again.")
+                    continue
             else:
-                move(getRandomDirection(), npcPlayer.position)
-                npcPlayer.movement_points -= 1
-                print("{}: ({}, {})".format(npcPlayer.name, npcPlayer.position['x'], npcPlayer.position['y']))
+                if move(getRandomDirection(), npcPlayer.position):
+                    npcPlayer.movement_points -= 1
+                    print("{}: ({}, {})".format(npcPlayer.name, npcPlayer.position['x'], npcPlayer.position['y']))
+                else:
+                    print("Couldn't move. Try again.")
+                    continue
 
             if not dotTurn:
                 time.sleep(1)  # wait 1 second before npc moves
@@ -140,15 +146,16 @@ def move(direction, dotPosition):
     # if try to move pass edges, stay at the actual cell
     if dotPosition['x'] == -1:
         dotPosition['x'] = 0
-
-    if dotPosition['y'] == -1:
+        return False
+    elif dotPosition['y'] == -1:
         dotPosition['y'] = 0
-
-    if dotPosition['x'] == CELLWIDTH:
+        return False
+    elif dotPosition['x'] == CELLWIDTH:
         dotPosition['x'] = CELLWIDTH - 1
-
-    if dotPosition['y'] == CELLHEIGHT:
+        return False
+    elif dotPosition['y'] == CELLHEIGHT:
         dotPosition['y'] = CELLHEIGHT - 1
+        return False
 
     return True
 
