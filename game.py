@@ -84,27 +84,7 @@ def runGame():
                         terminate()
 
         # move the dot by adding a segment in the direction it is moving
-        if direction == UP:
-            dotPlayer.position['y'] -= 1
-        elif direction == DOWN:
-            dotPlayer.position['y'] += 1
-        elif direction == LEFT:
-            dotPlayer.position['x'] -= 1
-        elif direction == RIGHT:
-            dotPlayer.position['x'] += 1
-
-        # if try to move pass edges, stay at the actual cell
-        if dotPlayer.position['x'] == -1:
-            dotPlayer.position['x'] = 0
-
-        if dotPlayer.position['y'] == -1:
-            dotPlayer.position['y'] = 0
-
-        if dotPlayer.position['x'] == CELLWIDTH:
-            dotPlayer.position['x'] = CELLWIDTH - 1
-
-        if dotPlayer.position['y'] == CELLHEIGHT:
-            dotPlayer.position['y'] = CELLHEIGHT - 1
+        move(direction, dotPlayer.position)
 
         print(dotPlayer.position)
 
@@ -118,6 +98,30 @@ def runGame():
         drawOptions()
         pygame.display.update()
         FPSCLOCK.tick(FPS)
+
+
+def move(direction, dotPosition):
+    if direction == UP:
+        dotPosition['y'] -= 1
+    elif direction == DOWN:
+        dotPosition['y'] += 1
+    elif direction == LEFT:
+        dotPosition['x'] -= 1
+    elif direction == RIGHT:
+        dotPosition['x'] += 1
+
+    # if try to move pass edges, stay at the actual cell
+    if dotPosition['x'] == -1:
+        dotPosition['x'] = 0
+
+    if dotPosition['y'] == -1:
+        dotPosition['y'] = 0
+
+    if dotPosition['x'] == CELLWIDTH:
+        dotPosition['x'] = CELLWIDTH - 1
+
+    if dotPosition['y'] == CELLHEIGHT:
+        dotPosition['y'] = CELLHEIGHT - 1
 
 
 def drawPressKeyMsg():
