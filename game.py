@@ -46,8 +46,11 @@ def main():
     FPSCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
     pygame.display.set_caption('DOT-ATTACK')
-    BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
-    STATUSFONT = pygame.font.Font('freesansbold.ttf', 14)
+
+    fontName = 'dejavusansmonoforpowerline'
+    fontPath = pygame.font.match_font(fontName)
+    BASICFONT = pygame.font.Font(fontPath, 18)
+    STATUSFONT = pygame.font.Font(fontPath, 12)
 
     # store options
     RESET_SURF, RESET_RECT = makeText(BASICFONT, 'Reset game', TEXTCOLOR, TILECOLOR, BOARDWIDTH + 50, BOARDHEIGHT + 50)
@@ -116,11 +119,17 @@ def runGame():
         gameStarted = True  # not necessary anymore after the game starts
 
         DISPLAYSURF.fill(BGCOLOR)
+
         drawGrid()
+
         drawDot(dotPlayer.position)
         drawNPC(dotNpc.position)
-        drawStatus(dotPlayer, dotNpc)
+
+        drawStatus(dotPlayer, BOARDWIDTH + 50, 20, (BOARDWIDTH + 50, 50), (BOARDWIDTH + 150, 50))
+        drawStatus(dotNpc, BOARDWIDTH + 50, BOARDHEIGHT//2, (BOARDWIDTH + 50, BOARDHEIGHT//2 + 30), (BOARDWIDTH + 150, BOARDHEIGHT//2 + 30))
+
         drawOptions()
+
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 
@@ -262,43 +271,26 @@ def makeText(font, text, color, bgcolor, top, left):
     textRect.topleft = (top, left)
     return (textSurf, textRect)
 
-def drawStatus(dotPlayer, dotNpc):
+
+def drawStatus(player, namePosx, namePosy, lineStart, lineEnd):
 
     playerName = "Player {}"
 
     # title info text
-    playerSurf, playerRect = makeText(BASICFONT, playerName.format(dotPlayer.name), TEXTCOLOR, None, BOARDWIDTH + 50, 20)
-    DISPLAYSURF.blit(playerSurf, playerRect)
+    surf, rect = makeText(BASICFONT, playerName.format(player.name), TEXTCOLOR, None, namePosx, namePosy)
+    DISPLAYSURF.blit(surf, rect)
 
     # add separator
-    pygame.draw.line(DISPLAYSURF, DARKGRAY, (BOARDWIDTH + 50, 50), (BOARDWIDTH + 150, 50))
+    pygame.draw.line(DISPLAYSURF, DARKGRAY, lineStart, lineEnd)
 
     # add attributes (ap, mp, atks, ...)
     mpSurf, mpRect = makeText(STATUSFONT,
-                              'Movement points: {}'.format(dotPlayer.movementPoints),
+                              'Movement points: {}'.format(player.movementPoints),
                               TEXTCOLOR,
                               None,
-                              BOARDWIDTH  + 60,
-                              75)
-    DISPLAYSURF.blit(mpSurf, mpRect)
+                              namePosx + 10,
+                              namePosy + 55)
 
-    # npc info text
-    npcSurf, npcRect = makeText(BASICFONT, playerName.format(dotNpc.name), TEXTCOLOR, None, BOARDWIDTH + 50, BOARDHEIGHT//2)
-    DISPLAYSURF.blit(npcSurf, npcRect)
-
-    # add separator
-    pygame.draw.line(DISPLAYSURF,
-                     DARKGRAY,
-                     (BOARDWIDTH + 50, BOARDHEIGHT//2 + 30),
-                     (BOARDWIDTH + 150, BOARDHEIGHT//2 + 30))
-
-    # add attributes (ap, mp, atks, ...)
-    mpSurf, mpRect = makeText(STATUSFONT,
-                              'Movement points: {}'.format(dotNpc.movementPoints),
-                              TEXTCOLOR,
-                              None,
-                              BOARDWIDTH  + 60,
-                              BOARDHEIGHT//2 + 55)
     DISPLAYSURF.blit(mpSurf, mpRect)
 
 
