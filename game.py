@@ -80,7 +80,8 @@ def runGame():
     turnCounter = 0
 
     while True: # main game loop
-        direction = None  # inhibit continuous movement
+        # direction = None  # inhibit continuous movement
+        direction = getRandomDirection()
 
         while (gameStarted and dotTurn) and not direction:
             for event in pygame.event.get(): # event handling loop
