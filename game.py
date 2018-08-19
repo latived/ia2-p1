@@ -26,6 +26,7 @@ DARKGREEN = (  0, 155,   0)
 DARKGRAY  = ( 40,  40,  40)
 BGCOLOR = BLACK
 
+TILECOLOR = RED
 TEXTCOLOR = WHITE
 
 UP = 'up'
@@ -36,13 +37,17 @@ RIGHT = 'right'
 HEAD = 0 # syntactic sugar: index of the dot's head
 
 def main():
-    global FPSCLOCK, DISPLAYSURF, BASICFONT
+    global FPSCLOCK, DISPLAYSURF, BASICFONT, RESET_SURF, RESET_RECT, QUIT_SURF, QUIT_RECT
 
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
-    BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
     pygame.display.set_caption('DOT-ATTACK')
+    BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
+
+    # store options
+    RESET_SURF, RESET_RECT = makeText(BASICFONT, 'Reset game', TEXTCOLOR, TILECOLOR, BOARDWIDTH + 50, BOARDHEIGHT + 50)
+    QUIT_SURF, QUIT_RECT = makeText(BASICFONT, 'Quit game', TEXTCOLOR, TILECOLOR, BOARDWIDTH + 50, BOARDHEIGHT + 80)
 
     showStartScreen()
     while True:
@@ -106,6 +111,7 @@ def runGame():
         drawDot(dotPlayer)
         drawNPC(npc)
         drawStatus(None, None)
+        drawOptions()
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 
@@ -218,6 +224,15 @@ def drawStatus(info_player, info_npc):
                      DARKGRAY,
                      (BOARDWIDTH + 50, BOARDHEIGHT//2 + 30),
                      (BOARDWIDTH + 150, BOARDHEIGHT//2 + 30))
+
+
+def drawOptions():
+    # separators at horizontal and vertical right beside and alongside last board point
+    pygame.draw.line(DISPLAYSURF, DARKGRAY, (BOARDWIDTH, BOARDHEIGHT), (WINDOWWIDTH, BOARDHEIGHT))
+    pygame.draw.line(DISPLAYSURF, DARKGRAY, (BOARDWIDTH, BOARDHEIGHT), (BOARDWIDTH, WINDOWHEIGHT))
+
+    DISPLAYSURF.blit(RESET_SURF, RESET_RECT)
+    DISPLAYSURF.blit(QUIT_SURF, QUIT_RECT)
 
 
 def drawDot(dotCoords):
