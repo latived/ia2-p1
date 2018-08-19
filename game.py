@@ -241,6 +241,15 @@ def drawStatus(dotPlayer, dotNpc):
                      (BOARDWIDTH + 50, BOARDHEIGHT//2 + 30),
                      (BOARDWIDTH + 150, BOARDHEIGHT//2 + 30))
 
+    # add attributes (ap, mp, atks, ...)
+    mpSurf, mpRect = makeText(STATUSFONT,
+                              'Movement points: {}'.format(dotNpc.movement_points),
+                              TEXTCOLOR,
+                              None,
+                              BOARDWIDTH  + 60,
+                              BOARDHEIGHT//2 + 55)
+    DISPLAYSURF.blit(mpSurf, mpRect)
+
 
 def drawOptions():
     # separators at horizontal and vertical right beside and alongside last board point
