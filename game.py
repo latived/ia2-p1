@@ -93,34 +93,15 @@ def runGame():
             turnCounter += 1
             print("Turn {}".format(turnCounter))
 
-
             if dotTurn:
-                previousPos = dotPlayer.position.copy()
-                # move the dot in the direction it is moving, obviously
-                if move(direction, dotPlayer.position):  # only false at first game start
-                    dotPlayer.movement_points -= 1
-                    print("\t{}: ({}, {}) to ({}, {})".format(dotPlayer.name,
-                                                            previousPos['x'], previousPos['y'],
-                                                            dotPlayer.position['x'], dotPlayer.position['y']))
-                else:
-                    print("\tCouldn't move. Try again.")
+                if not doPlayerTurn(dotPlayer, direction, turnCounter):
                     turnCounter -= 1
                     continue
             else:
-                previousPos = npcPlayer.position.copy()
-
-                if move(getRandomDirection(), npcPlayer.position):
-                    npcPlayer.movement_points -= 1
-                    print("\t{}: ({}, {}) to ({}, {})".format(npcPlayer.name,
-                                                            previousPos['x'], previousPos['y'],
-                                                            npcPlayer.position['x'], npcPlayer.position['y']))
-                else:
-                    print("Couldn't move. Try again.")
+                time.sleep(1)  # wait 1 second before npc moves
+                if not doPlayerTurn(npcPlayer, getRandomDirection(), turnCounter):
                     turnCounter -= 1
                     continue
-
-            if not dotTurn:
-                time.sleep(1)  # wait 1 second before npc moves
 
             # change turn
             dotTurn = not dotTurn
@@ -135,6 +116,20 @@ def runGame():
         drawOptions()
         pygame.display.update()
         FPSCLOCK.tick(FPS)
+
+
+def doPlayerTurn(player, direction, turnCounter):
+    previousPos = player.position.copy()
+    # move the dot in the direction it is moving, obviously
+    if move(direction, player.position):  # only false at first game start
+        player.movement_points -= 1
+        print("\t{}: ({}, {}) to ({}, {})".format(player.name,
+                                                previousPos['x'], previousPos['y'],
+                                                player.position['x'], player.position['y']))
+        return True
+    else:
+        print("\tCouldn't move. Try again.")
+        return False
 
 
 def getRandomDirection():
