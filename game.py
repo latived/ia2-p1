@@ -85,7 +85,10 @@ def runGame():
 
         while (gameStarted and dotTurn) and not direction:
             for event in pygame.event.get(): # event handling loop
-                if event.type == QUIT:
+                if event.type == MOUSEBUTTONUP:
+                    if QUIT_RECT.collidepoint(event.pos):
+                        terminate()
+                elif event.type == QUIT:
                     terminate()
                 elif event.type == KEYDOWN:
                     if (event.key == K_LEFT or event.key == K_a) and direction != RIGHT:
