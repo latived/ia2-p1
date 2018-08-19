@@ -61,8 +61,15 @@ def main():
 
 def runGame():
     # Set a random start point for dot and NPC-dot
-    dotPlayer = Player('latived', getRandomLocation(), 100, 50, None)
-    npcPlayer = Player('npc_01', getRandomLocation(), 100, 50, None)
+    START_VP = 100  # Vitality points
+    START_AP = 100  # Action points
+    START_MP = 50   # Move points
+
+    ATK_PLAYER = {'horizontal': (10, 10), 'vertical': (5, 5) }  # atk : (range_space, range_damage)
+    ATK_NPC = {'horizontal': (5, 5), 'vertical': (10, 10) }  # atk : (range_space, range_damage)
+
+    dotPlayer = Player('latived', getRandomLocation(), START_VP, START_AP, START_MP, ATK_PLAYER)
+    dotNpc = Player('npc_01', getRandomLocation(), START_VP, START_AP, START_MP, ATK_NPC)
 
     gameStarted = False  # inhibit necessity for one move before the game starts
 
@@ -99,7 +106,7 @@ def runGame():
                     continue
             else:
                 time.sleep(1)  # wait 1 second before npc moves
-                if not doPlayerTurn(npcPlayer, getRandomDirection(), turnCounter):
+                if not doPlayerTurn(dotNpc, getRandomDirection(), turnCounter):
                     turnCounter -= 1
                     continue
 
@@ -111,8 +118,8 @@ def runGame():
         DISPLAYSURF.fill(BGCOLOR)
         drawGrid()
         drawDot(dotPlayer.position)
-        drawNPC(npcPlayer.position)
-        drawStatus(dotPlayer, npcPlayer)
+        drawNPC(dotNpc.position)
+        drawStatus(dotPlayer, dotNpc)
         drawOptions()
         pygame.display.update()
         FPSCLOCK.tick(FPS)
@@ -122,7 +129,7 @@ def doPlayerTurn(player, direction, turnCounter):
     previousPos = player.position.copy()
     # move the dot in the direction it is moving, obviously
     if move(direction, player.position):  # only false at first game start
-        player.movement_points -= 1
+        player.movementPoints -= 1
         print("\t{}: ({}, {}) to ({}, {})".format(player.name,
                                                 previousPos['x'], previousPos['y'],
                                                 player.position['x'], player.position['y']))
@@ -268,7 +275,7 @@ def drawStatus(dotPlayer, dotNpc):
 
     # add attributes (ap, mp, atks, ...)
     mpSurf, mpRect = makeText(STATUSFONT,
-                              'Movement points: {}'.format(dotPlayer.movement_points),
+                              'Movement points: {}'.format(dotPlayer.movementPoints),
                               TEXTCOLOR,
                               None,
                               BOARDWIDTH  + 60,
@@ -287,7 +294,7 @@ def drawStatus(dotPlayer, dotNpc):
 
     # add attributes (ap, mp, atks, ...)
     mpSurf, mpRect = makeText(STATUSFONT,
-                              'Movement points: {}'.format(dotNpc.movement_points),
+                              'Movement points: {}'.format(dotNpc.movementPoints),
                               TEXTCOLOR,
                               None,
                               BOARDWIDTH  + 60,

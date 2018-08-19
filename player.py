@@ -7,9 +7,10 @@ Created by lativ on 19/08/18 at 07:02
 
 class Player():
 
-    def __init__(self, name, location, action_points, mov_points, atk_types):
+    def __init__(self, name, location, vitalityPoints, actionPoints, movPoints, atkTypes):
         self.name = name
         self.position = location
-        self.action_points = action_points
-        self.movement_points = mov_points
-        self.atk_types = atk_types
+        self.vitalityPoints = vitalityPoints
+        self.actionPoints = actionPoints
+        self.movementPoints = movPoints
+        self.atkTypes = atkTypes
