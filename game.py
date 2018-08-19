@@ -64,10 +64,12 @@ def runGame():
     dotPlayer = Player('latived', getRandomLocation(), 100, 50, None)
     npcPlayer = Player('npc_01', getRandomLocation(), 100, 50, None)
 
-    while True: # main game loop
-        direction = None
+    gameStarted = False  # inhibit necessity for one move before the game starts
 
-        while not direction:
+    while True: # main game loop
+        direction = None  # inhibit continuous movement
+
+        while gameStarted and not direction:
             for event in pygame.event.get(): # event handling loop
                 if event.type == QUIT:
                     terminate()
@@ -83,12 +85,13 @@ def runGame():
                     elif event.key == K_ESCAPE:
                         terminate()
 
+        gameStarted = True  # not necessary anymore after the game starts
+
         # move the dot by adding a segment in the direction it is moving
-        move(direction, dotPlayer.position)
+        if move(direction, dotPlayer.position):  # only false at first game start
+            dotPlayer.movement_points -= 1
 
         print(dotPlayer.position)
-
-        dotPlayer.movement_points -= 1
 
         DISPLAYSURF.fill(BGCOLOR)
         drawGrid()
@@ -101,6 +104,10 @@ def runGame():
 
 
 def move(direction, dotPosition):
+
+    if not direction:
+        return False
+
     if direction == UP:
         dotPosition['y'] -= 1
     elif direction == DOWN:
@@ -122,6 +129,8 @@ def move(direction, dotPosition):
 
     if dotPosition['y'] == CELLHEIGHT:
         dotPosition['y'] = CELLHEIGHT - 1
+
+    return True
 
 
 def drawPressKeyMsg():
