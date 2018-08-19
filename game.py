@@ -3,7 +3,7 @@
 # http://inventwithpython.com/pygame
 # Released under a "Simplified BSD" license
 
-import random, pygame, sys
+import random, pygame, sys, time
 from pygame.locals import *
 
 from player import Player
@@ -71,7 +71,7 @@ def runGame():
     while True: # main game loop
         direction = None  # inhibit continuous movement
 
-        while gameStarted and not direction:
+        while (gameStarted and dotTurn) and not direction:
             for event in pygame.event.get(): # event handling loop
                 if event.type == QUIT:
                     terminate()
@@ -99,6 +99,9 @@ def runGame():
                 move(getRandomDirection(), npcPlayer.position)
                 npcPlayer.movement_points -= 1
                 print("{}: ({}, {})".format(npcPlayer.name, npcPlayer.position['x'], npcPlayer.position['y']))
+
+            if not dotTurn:
+                time.sleep(1)  # wait 1 second before npc moves
 
             # change turn
             dotTurn = not dotTurn
