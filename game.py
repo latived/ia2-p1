@@ -24,6 +24,8 @@ WHITE     = (255, 255, 255)
 BLACK     = (  0,   0,   0)
 RED       = (255,   0,   0)
 GREEN     = (  0, 255,   0)
+BLUE      = (  0,   0, 255)
+DARKBLUE  = (  0,   0, 155)
 DARKGREEN = (  0, 155,   0)
 DARKGRAY  = ( 40,  40,  40)
 BGCOLOR = BLACK
@@ -83,6 +85,12 @@ def runGame():
         # direction = None  # inhibit continuous movement
         direction = getRandomDirection()
 
+        # TEMP CODE JUST FOR TEST PURPOSES
+        for event in pygame.event.get(): # event handling loop
+            if event.type == MOUSEBUTTONUP:
+                if QUIT_RECT.collidepoint(event.pos):
+                    terminate()
+
         while (gameStarted and dotTurn) and not direction:
             for event in pygame.event.get(): # event handling loop
                 if event.type == MOUSEBUTTONUP:
@@ -107,48 +115,97 @@ def runGame():
             turnCounter += 1
             print("Turn {}".format(turnCounter))
 
-            if dotTurn:
-                if not doPlayerTurn(dotPlayer, direction, turnCounter):
-                    turnCounter -= 1
-                    continue
-            else:
-                time.sleep(1)  # wait 1 second before npc moves
-                if not doPlayerTurn(dotNpc, getRandomDirection(), turnCounter):
-                    turnCounter -= 1
-                    continue
+            if not doDotTurn(dotPlayer, dotNpc, direction, dotTurn):
+                turnCounter -= 1
+                continue
 
             # change turn
             dotTurn = not dotTurn
 
         gameStarted = True  # not necessary anymore after the game starts
 
-        DISPLAYSURF.fill(BGCOLOR)
-
-        drawGrid()
-
-        drawDot(dotPlayer.position)
-        drawNPC(dotNpc.position)
-
-        drawStatus(dotPlayer, BOARDWIDTH + 10, 20, (BOARDWIDTH + 10, 50), (BOARDWIDTH + 150, 50))
-        drawStatus(dotNpc, BOARDWIDTH + 10, BOARDHEIGHT//2, (BOARDWIDTH + 10, BOARDHEIGHT//2 + 30), (BOARDWIDTH + 150, BOARDHEIGHT//2 + 30))
-
-        drawOptions()
-
+        drawGameWindow(dotPlayer, dotNpc)
+        time.sleep(1)  # wait 1 second before npc moves at window
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 
 
-def doPlayerTurn(player, direction, turnCounter):
-    previousPos = player.position.copy()
+def drawGameWindow(dotPlayer, dotNpc):
+    DISPLAYSURF.fill(BGCOLOR)
+
+    drawGrid()
+
+    drawDotPlayer(dotPlayer.position)
+    drawNpcPlayer(dotNpc.position)
+
+    drawStatus(dotPlayer, BOARDWIDTH + 10, 20, (BOARDWIDTH + 10, 50), (BOARDWIDTH + 150, 50))
+    drawStatus(dotNpc, BOARDWIDTH + 10, BOARDHEIGHT//2, (BOARDWIDTH + 10, BOARDHEIGHT//2 + 30), (BOARDWIDTH + 150, BOARDHEIGHT//2 + 30))
+
+    drawOptions()
+
+
+def dotAttack(dotPlayingCoords, dotWaitingCoords, atkType, rangeAtk):
+    px = dotPlayingCoords['x']
+    py = dotPlayingCoords['y']
+    nx = dotWaitingCoords['x']
+    ny = dotWaitingCoords['y']
+
+    if atkType == 'vertical':
+        if (px - rangeAtk <= nx <= px) and (py == ny):
+            return True
+        elif (px <= nx <= px + rangeAtk) and (py == ny):
+            return True
+    elif atkType == 'horizontal':
+        if (py <= ny <= py + rangeAtk) and (px == nx):
+            return True
+        elif (py - rangeAtk <= ny <= py) and (px == nx):
+            return True
+    else:
+        return False
+
+
+def doDotTurn(player, npc, direction, dotTurn):
+
+    dotPlaying = npc
+    dotWaiting = player
+
+    if dotTurn:
+        dotPlaying = player
+        dotWaiting = npc
+
+    previousPos = dotPlaying.position.copy()
     # move the dot in the direction it is moving, obviously
-    if move(direction, player.position):  # only false at first game start
-        player.movementPoints -= 1
-        print("\t{}: ({}, {}) to ({}, {})".format(player.name,
+    if move(direction, dotPlaying.position):  # only false at first game start
+        dotPlaying.movementPoints -= 1
+        print("\t{}: ({}, {}) to ({}, {})".format(dotPlaying.name,
                                                 previousPos['x'], previousPos['y'],
-                                                player.position['x'], player.position['y']))
+                                                dotPlaying.position['x'], dotPlaying.position['y']))
+
+        atkType = random.choice(list(dotPlaying.atkTypes))
+        rangeAtk = dotPlaying.atkTypes[atkType][0]
+        hit = dotAttack(dotPlaying.position, dotWaiting.position, atkType, rangeAtk)
+        dotPlaying.actionPoints -= 5
+
+        # actualize window to show attack
+        drawGameWindow(player, npc)
+        time.sleep(2)
+        drawAttack(dotPlaying.position, atkType, rangeAtk)
+        pygame.display.update()
+
+        if hit:
+            damage = dotPlaying.atkTypes[atkType][1]
+
+            print("\t{} attacked {}ly {} and infriges {} damage points.".
+                  format(dotPlaying.name, atkType, dotWaiting.name, damage))
+
+            dotWaiting.vitalityPoints -= damage
+        else:
+            print("\t{} attacked {}ly {} but missed.".
+                  format(dotPlaying.name, atkType, dotWaiting.name))
+
         return True
     else:
-        print("\t{}: move to off the board is invalid. Try again.".format(player.name))
+        print("\t{}: move to off the board is invalid. Try again.".format(dotPlaying.name))
         return False
 
 
@@ -349,18 +406,46 @@ def drawOptions():
     DISPLAYSURF.blit(QUIT_SURF, QUIT_RECT)
 
 
-def drawDot(dotCoords):
-    x = dotCoords['x'] * CELLSIZE
-    y = dotCoords['y'] * CELLSIZE
+def drawAttack(dotPlayingCoords, atkType, atkRange):
+
+    dotPosx = dotPlayingCoords['x']
+    dotPosy = dotPlayingCoords['y']
+
+    atkCoords = []
+    if atkType == 'horizontal':
+        for i in range(atkRange):
+            newCellAtRight = {'x' : dotPosx, 'y': dotPosy + i + 1 }
+            atkCoords.append(newCellAtRight)
+            newCellAtLeft = {'x' : dotPosx, 'y': dotPosy - i - 1 }
+            atkCoords.insert(0, newCellAtLeft)
+    elif atkType == 'vertical':
+         for i in range(atkRange):
+            newCellAbove = {'x': dotPosx - i - 1, 'y' : dotPosy }
+            atkCoords.append(newCellAbove)
+            newCellBelow = {'x': dotPosx + i + 1, 'y' : dotPosy }
+            atkCoords.insert(0, newCellBelow)
+
+    for coord in atkCoords:
+        x = coord['x'] * CELLSIZE
+        y = coord['y'] * CELLSIZE
+        dotSegmentRect = pygame.Rect(x, y, CELLSIZE, CELLSIZE)
+        pygame.draw.rect(DISPLAYSURF, DARKBLUE, dotSegmentRect)
+        dotInnerSegmentRect = pygame.Rect(x + 4, y + 4, CELLSIZE - 8, CELLSIZE - 8)
+        pygame.draw.rect(DISPLAYSURF, BLUE, dotInnerSegmentRect)
+
+
+def drawDotPlayer(playerCoords):
+    x = playerCoords['x'] * CELLSIZE
+    y = playerCoords['y'] * CELLSIZE
     dotSegmentRect = pygame.Rect(x, y, CELLSIZE, CELLSIZE)
     pygame.draw.rect(DISPLAYSURF, DARKGREEN, dotSegmentRect)
     dotInnerSegmentRect = pygame.Rect(x + 4, y + 4, CELLSIZE - 8, CELLSIZE - 8)
     pygame.draw.rect(DISPLAYSURF, GREEN, dotInnerSegmentRect)
 
 
-def drawNPC(coord):
-    x = coord['x'] * CELLSIZE
-    y = coord['y'] * CELLSIZE
+def drawNpcPlayer(npcCoords):
+    x = npcCoords['x'] * CELLSIZE
+    y = npcCoords['y'] * CELLSIZE
     npcRect = pygame.Rect(x, y, CELLSIZE, CELLSIZE)
     pygame.draw.rect(DISPLAYSURF, RED, npcRect)
 
