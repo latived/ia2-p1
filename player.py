@@ -12,7 +12,9 @@ class Player():
 
     def __init__(self, name, location, atkTypes, vitalityPoints=START_VP, movPoints=START_MP):
         # Only considering two atkTypes, and one atk each. Need to update below whenever we add more atks.
-        higherAtksDamage = [atk[1] for atk in atkTypes.values()].sort(reverse=True)
+        higherAtksDamage = [atk[1] for atk in atkTypes.values()]
+        higherAtksDamage.sort(reverse=True)
+
         self.name = name
         self.position = location
         self.vitalityPoints = vitalityPoints
