@@ -11,8 +11,8 @@ from player import Player
 FPS = 15
 WINDOWWIDTH = 1080
 WINDOWHEIGHT = 720
-BOARDWIDTH = 640
-BOARDHEIGHT = 480
+BOARDWIDTH = 600
+BOARDHEIGHT = 600
 CELLSIZE = 20
 assert BOARDWIDTH % CELLSIZE == 0, "Window width must be a multiple of cell size."
 assert BOARDHEIGHT % CELLSIZE == 0, "Window height must be a multiple of cell size."
@@ -40,6 +40,12 @@ RIGHT = 'right'
 
 HEAD = 0 # syntactic sugar: index of the dot's head
 
+# TURN FLAGS
+TURN_OK = 1
+TURN_MOVE_FAIL_OB = 2  # OB stands for Off Board
+TURN_MOVE_FAIL_MP = 3  # MP stands for Movement Points
+TURN_ATK_FAIL = 4
+
 def main():
     global FPSCLOCK, DISPLAYSURF, BASICFONT, STATUSFONT
     global RESET_SURF, RESET_RECT, QUIT_SURF, QUIT_RECT
@@ -66,8 +72,8 @@ def main():
 
 def runGame():
 
-    ATK_PLAYER = {'horizontal': (10, 10), 'vertical': (5, 5) }  # atk : (range_space, range_damage)
-    ATK_NPC = {'horizontal': (5, 5), 'vertical': (10, 10) }  # atk : (range_space, range_damage)
+    ATK_PLAYER = {'horizontal': (10, 10, 5), 'vertical': (5, 5, 5) }  # atk : (range_space, range_damage, range_cost)
+    ATK_NPC = {'horizontal': (5, 5, 5), 'vertical': (10, 10, 5) }  # atk : (range_space, range_damage, range_cost)
 
     dotPlayer = Player('latived', getRandomLocation(xby=True), ATK_PLAYER)
     dotNpc = Player('npc_01', getRandomLocation(ybx=True), ATK_NPC)
@@ -75,11 +81,16 @@ def runGame():
     gameStarted = False  # inhibit necessity for one move before the game starts
 
     dotTurn = True  # control if dot or npc can move (true if player, false if npc)
-    turnCounter = 0
+    dotCanAtk = True  # just initializing
+    dotCanMove = True
+    turnCounter = 1
+    showedTurnCounter = False
 
     while True: # main game loop
-        direction = None  # inhibit continuous movement
         # direction = getRandomDirection()
+        dotDirection = None  # inhibit continuous movement
+        dotAtkType = None
+        dotTurnOver = False
 
         # TEMP CODE JUST FOR TEST PURPOSES
         #for event in pygame.event.get(): # event handling loop
@@ -87,7 +98,8 @@ def runGame():
         #        if QUIT_RECT.collidepoint(event.pos):
         #            terminate()
 
-        while (gameStarted and dotTurn) and not direction:
+        # if game started and is player turn, wait event (move or attack or pass over the turn)
+        while (gameStarted and dotTurn) and not dotDirection and not dotAtkType and not dotTurnOver:
             for event in pygame.event.get(): # event handling loop
                 if event.type == MOUSEBUTTONUP:
                     if QUIT_RECT.collidepoint(event.pos):
@@ -95,31 +107,64 @@ def runGame():
                 elif event.type == QUIT:
                     terminate()
                 elif event.type == KEYDOWN:
-                    if (event.key == K_LEFT or event.key == K_a) and direction != RIGHT:
-                        direction = LEFT
-                    elif (event.key == K_RIGHT or event.key == K_d) and direction != LEFT:
-                        direction = RIGHT
-                    elif (event.key == K_UP or event.key == K_w) and direction != DOWN:
-                        direction = UP
-                    elif (event.key == K_DOWN or event.key == K_s) and direction != UP:
-                        direction = DOWN
+                    # check for pass over turn
+                    if (event.key == K_p):
+                        dotTurnOver = True
+                    # check for attack
+                    elif (event.key == K_h):
+                        dotAtkType = 'horizontal'
+                    elif (event.key == K_v):
+                        dotAtkType = 'vertical'
+                    # check for movement
+                    elif (event.key == K_LEFT or event.key == K_a) and dotDirection != RIGHT:
+                        dotDirection = LEFT
+                    elif (event.key == K_RIGHT or event.key == K_d) and dotDirection != LEFT:
+                        dotDirection = RIGHT
+                    elif (event.key == K_UP or event.key == K_w) and dotDirection != DOWN:
+                        dotDirection = UP
+                    elif (event.key == K_DOWN or event.key == K_s) and dotDirection != UP:
+                        dotDirection = DOWN
                     elif event.key == K_ESCAPE:
                         terminate()
 
         # TODO: put these print below in a log section at game window
         if gameStarted:
-            turnCounter += 1
-            print("Turn {}".format(turnCounter))
+            if not showedTurnCounter:
+                print("Turn {}".format(turnCounter))
+                showedTurnCounter = True
 
             if not dotTurn:
-                direction = getRandomDirection()
+                dotDirection = getRandomDirection()
+                dotAtkType = random.choice(list(dotNpc.atkTypes))  # because only npc enters here (it is its turn)
+                # swap turn, reset variable
+                dotCanAtk = True
+                dotCanMove = True
 
-            if not doDotTurn(dotPlayer, dotNpc, direction, dotTurn):
-                turnCounter -= 1
+            if not dotCanMove:
+                dotDirection = None
+
+            if not dotCanAtk:  # if cannot atk, doesn't matter if he wants
+                dotAtkType = None
+
+            turnResult, turnFlag = doDotTurn(dotPlayer, dotNpc, dotDirection, dotTurn, dotAtkType)
+
+            if not turnFlag:
+                if turnResult == TURN_MOVE_FAIL_OB:
+                    pass
+                elif turnResult == TURN_MOVE_FAIL_MP:
+                    # force player/npc to atk or pass turn
+                    dotCanMove = False
+                elif turnResult == TURN_ATK_FAIL:
+                    # force player/npc to move or pass turn
+                    dotCanAtk = False
+
                 continue
 
             # change turn
-            dotTurn = not dotTurn
+            if dotTurnOver:
+                turnCounter += 1
+                showedTurnCounter = False
+                dotTurn = not dotTurn
 
         gameStarted = True  # not necessary anymore after the game starts
 
@@ -163,7 +208,7 @@ def dotAttack(dotPlayingCoords, dotWaitingCoords, atkType, rangeAtk):
         return False
 
 
-def doDotTurn(player, npc, direction, dotTurn):
+def doDotTurn(player, npc, dotDirection, dotTurn, dotAtkType):
 
     dotPlaying = npc
     dotWaiting = player
@@ -173,39 +218,59 @@ def doDotTurn(player, npc, direction, dotTurn):
         dotWaiting = npc
 
     previousPos = dotPlaying.position.copy()
-    # move the dot in the direction it is moving, obviously
-    if move(direction, dotPlaying.position):  # only false at first game start
-        dotPlaying.movementPoints -= 1
-        print("\t{} moves from ({}, {}) to ({}, {})".format(dotPlaying.name,
-                                                previousPos['x'], previousPos['y'],
-                                                dotPlaying.position['x'], dotPlaying.position['y']))
 
-        atkType = random.choice(list(dotPlaying.atkTypes))
-        rangeAtk = dotPlaying.atkTypes[atkType][0]
-        hit = dotAttack(dotPlaying.position, dotWaiting.position, atkType, rangeAtk)
-        dotPlaying.actionPoints -= 5
+    if dotAtkType:  # if players wants to atk (npc atk is always set randomly in its, player not) (for now
 
-        # actualize window to show attack
+        rangeAtk = dotPlaying.atkTypes[dotAtkType][0]
+        costAtk = dotPlaying.atkTypes[dotAtkType][2]
+
+        hit = dotAttack(dotPlaying.position, dotWaiting.position, dotAtkType, rangeAtk)
+
+        if dotPlaying.actionPoints >= costAtk:
+            dotPlaying.actionPoints -= costAtk
+        else:
+            print("\t{} couldn't attack: low action points.".format(dotPlaying.name))
+            return TURN_ATK_FAIL, False
+
+        # actualize window to show attack (need this here because we need to draw attack)
         drawGameWindow(player, npc)
-        drawAttack(dotPlaying.position, atkType, rangeAtk)
+        drawAttack(dotPlaying.position, dotAtkType, rangeAtk)
         pygame.display.update()
         time.sleep(0.5)
 
         if hit:
-            damage = dotPlaying.atkTypes[atkType][1]
+            damage = dotPlaying.atkTypes[dotAtkType][1]
 
             print("\t{} attacked {}ly {} and infriges {} damage points.".
-                  format(dotPlaying.name, atkType, dotWaiting.name, damage))
+                  format(dotPlaying.name, dotAtkType, dotWaiting.name, damage))
 
             dotWaiting.vitalityPoints -= damage
         else:
             print("\t{} attacked {}ly {} but missed.".
-                  format(dotPlaying.name, atkType, dotWaiting.name))
+                  format(dotPlaying.name, dotAtkType, dotWaiting.name))
 
-        return True
+    # move the dot in the direction it is moving, obviously
+    elif dotDirection:
+
+        if not dotPlaying.movementPoints:  # if mp is 0, dot can't move
+            print("\t{} couldn't move: low movement points.".format(dotPlaying.name))
+            return TURN_MOVE_FAIL_MP, False
+
+        moveResult = dotMove(dotDirection, dotPlaying.position)  # only false at first game start (and if not atk, will move)
+
+        if moveResult:
+            dotPlaying.movementPoints -= 1
+            print("\t{} moves from ({}, {}) to ({}, {})".format(dotPlaying.name,
+                                                previousPos['x'], previousPos['y'],
+                                                dotPlaying.position['x'], dotPlaying.position['y']))
+
+        else:
+            print("\t{}: movement to off the board is invalid. Try again.".format(dotPlaying.name))
+            return TURN_MOVE_FAIL_OB, False
     else:
-        print("\t{}: movement to off the board is invalid. Try again.".format(dotPlaying.name))
-        return False
+        print("\t{} stays at ({}, {}).".format(dotPlaying.name, dotPlaying.position['x'], dotPlaying.position['y']))
+
+    return TURN_OK, True
 
 
 def getRandomDirection():
@@ -213,10 +278,7 @@ def getRandomDirection():
     return random.choice(directions)
 
 
-def move(direction, dotPosition):
-
-    if not direction:
-        return False
+def dotMove(direction, dotPosition):
 
     if direction == UP:
         dotPosition['y'] -= 1
