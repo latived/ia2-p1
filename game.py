@@ -66,18 +66,11 @@ def main():
 
 def runGame():
 
-    # Set a random start point for dot and NPC-dot
-    START_VP = 100  # Vitality points
-    START_AP = 10  # Action points
-    START_MP = 10   # Move points
-
     ATK_PLAYER = {'horizontal': (10, 10), 'vertical': (5, 5) }  # atk : (range_space, range_damage)
     ATK_NPC = {'horizontal': (5, 5), 'vertical': (10, 10) }  # atk : (range_space, range_damage)
 
-    xyOccupied = []
-
-    dotPlayer = Player('latived', getRandomLocation(xby=True), START_VP, START_AP, START_MP, ATK_PLAYER)
-    dotNpc = Player('npc_01', getRandomLocation(ybx=True), START_VP, START_AP, START_MP, ATK_NPC)
+    dotPlayer = Player('latived', getRandomLocation(xby=True), ATK_PLAYER)
+    dotNpc = Player('npc_01', getRandomLocation(ybx=True), ATK_NPC)
 
     gameStarted = False  # inhibit necessity for one move before the game starts
 
