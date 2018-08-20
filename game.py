@@ -414,16 +414,20 @@ def drawAttack(dotPlayingCoords, atkType, atkRange):
     atkCoords = []
     if atkType == 'horizontal':
         for i in range(atkRange):
-            newCellAtRight = {'x' : dotPosx, 'y': dotPosy + i + 1 }
-            atkCoords.append(newCellAtRight)
-            newCellAtLeft = {'x' : dotPosx, 'y': dotPosy - i - 1 }
-            atkCoords.insert(0, newCellAtLeft)
+            if dotPosx + i + 1 < CELLWIDTH:
+                newCellAtRight = {'x' : dotPosx + i + 1, 'y': dotPosy }
+                atkCoords.append(newCellAtRight)
+            if dotPosx - i - 1 >= 0:
+                newCellAtLeft = {'x' : dotPosx - i - 1, 'y': dotPosy }
+                atkCoords.insert(0, newCellAtLeft)
     elif atkType == 'vertical':
-         for i in range(atkRange):
-            newCellAbove = {'x': dotPosx - i - 1, 'y' : dotPosy }
-            atkCoords.append(newCellAbove)
-            newCellBelow = {'x': dotPosx + i + 1, 'y' : dotPosy }
-            atkCoords.insert(0, newCellBelow)
+        for i in range(atkRange):
+            if dotPosy - i - 1 >= 0:
+                newCellAbove = {'x': dotPosx, 'y' : dotPosy - i - 1 }
+                atkCoords.append(newCellAbove)
+            if dotPosy + i + 1 < CELLHEIGHT:
+                newCellBelow = {'x': dotPosx, 'y' : dotPosy + i + 1 }
+                atkCoords.insert(0, newCellBelow)
 
     for coord in atkCoords:
         x = coord['x'] * CELLSIZE
