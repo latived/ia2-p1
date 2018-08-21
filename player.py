@@ -17,6 +17,7 @@ class Player():
         self.vitalityPoints = vitalityPoints
         self.actionPoints = self.getMaximumAP()
         self.movementPoints = movPoints
+        self.futureMoves = []
 
 
     def regenerateMP(self):

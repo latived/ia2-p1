@@ -3,6 +3,8 @@
 """
 Created by lativ on 21/08/18 at 09:04
 """
+import random
+import config
 
 def npcGaActions(dotPlayer, dotNpc):
     """
@@ -77,12 +79,52 @@ def npcGaActions(dotPlayer, dotNpc):
     dotAtkType = None    # vertical or horizontal
     dotTurnOver = False  # simple flag indiciate if npc will pass turn
 
-    resultAtkLook, dotAtkType = isAttackPossible(dotPlayer, dotNpc)
+    # npcNewCoords is dict like Player position attribute
+    npcNewCoords = findNewCoords(dotPlayer.position, dotNpc.position, dotNpc.movementPoints)
+    # Here we need to transform npcNewCoords to a list of actions (moves, attack and/or turn over)
+    # I think we will need to use python generator
+    # But for now we don't. Just return a list with directions. A list as stack, remember. First moves at the top.
 
-    if resultAtkLook:
-        return dotDirection, dotAtkType, dotTurnOver
+    dotDirectionList = transformCoordsToMoveDirections(dotNpc.position, npcNewCoords)
+
+    return dotDirectionList
+
+
+def transformCoordsToMoveDirections(dotNpcCoords, dotNpcCoordsNew):
+
+    fromPosx = dotNpcCoords['x']
+    fromPosy = dotNpcCoords['y']
+    toPosx = dotNpcCoordsNew['x']
+    toPosy = dotNpcCoordsNew['y']
+
+    horizontalMoves = toPosx - fromPosx
+    verticalMoves = toPosy - fromPosy
+    actualMoves = []
+
+
+    if horizontalMoves > 0:
+        actualMoves += [config.RIGHT] * abs(horizontalMoves)
     else:
-        return None, None, True  # Just to test: if cannot atk, pass turn
+        actualMoves += [config.LEFT] * abs(horizontalMoves)
+
+    if verticalMoves > 0:
+        actualMoves += [config.DOWN] * abs(verticalMoves)
+    else:
+        actualMoves += [config.UP] * abs(verticalMoves)
+
+    # as stack
+    actualMoves.reverse()
+
+    return actualMoves
+
+
+def findNewCoords(dotPlayerCoords, dotNpcCoords, dotNpcMP):
+
+    # Testing...
+    x = random.randint(0, config.CELL_WIDTH - 1)
+    y = random.randint(0, config.CELL_HEIGHT - 1)
+
+    return {'x' : x, 'y': y}
 
 
 def isAttackPossible(dotPlayer, dotNpc):
@@ -91,29 +133,34 @@ def isAttackPossible(dotPlayer, dotNpc):
     px = dotPlayer.position['x']
     py = dotPlayer.position['y']
 
+    canAtk = False
     atkType = None
     atkRangeHor = dotNpc.atkTypes['horizontal'][0]
     atkRangeVer = dotNpc.atkTypes['vertical'][0]
+
+
+    if (nx - atkRangeHor <= px <= nx) and (ny == py):
+        atkType = 'horizontal'
+        canAtk = True
+    elif (nx <= px <= nx + atkRangeHor) and (ny == py):
+        atkType = 'horizontal'
+        canAtk = True
+    elif (ny <= py <= ny + atkRangeVer) and (nx == px):
+        atkType = 'vertical'
+        canAtk = True
+    elif (ny - atkRangeVer <= py <= ny) and (nx == px):
+        atkType = 'vertical'
+        canAtk = True
+    else:
+        canAtk = False
 
     # len(enoughAP) = 0 indicates that actionPoints is low
     enoughAP = [ranges[2] for ranges in dotNpc.atkTypes.values() if dotNpc.actionPoints >= ranges[2]]
 
     if not len(enoughAP):
-        return False, atkType
+        canAtk = False
 
-    if (nx - atkRangeHor <= px <= nx) and (ny == py):
-        atkType = 'horizontal'
-        return True, atkType
-    elif (nx <= px <= nx + atkRangeHor) and (ny == py):
-        atkType = 'horizontal'
-        return True, atkType
-    elif (ny <= py <= ny + atkRangeVer) and (nx == px):
-        atkType = 'vertical'
-        return True, atkType
-    elif (ny - atkRangeVer <= py <= ny) and (nx == px):
-        atkType = 'vertical'
-        return True, atkType
-    else:
-        return False, atkType
+    # npc can atk but have low action points if atkType != None
 
+    return canAtk, atkType
 

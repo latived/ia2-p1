@@ -51,6 +51,7 @@ def runGame():
     showedTurnCounter = False
 
     npcGaControlled = True  # tell if we have random actions or ga controlled actions
+    npcMoveDirectionsFound = False
 
     while True: # main game loop
         # direction = getRandomDirection()
@@ -105,13 +106,28 @@ def runGame():
 
             if not dotTurn:
                 if npcGaControlled:
-                    dotDirection, dotAtkType, dotTurnOver = ga.npcGaActions(dotPlayer, dotNpc)
+
+                    # set next direction move
+                    if len(dotNpc.futureMoves) == 0 and dotCanMove:
+                        dotNpc.futureMoves = ga.npcGaActions(dotPlayer, dotNpc)
+                        dotDirection = dotNpc.futureMoves.pop()
+                        dotCanAtk = False
+                    else:
+                        # dotCantAtk is True always, here.
+                        if len(dotNpc.futureMoves) == 0:
+                            dotCanAtk, dotAtkType = ga.isAttackPossible(dotPlayer, dotNpc)
+                            dotCanMove = False  # we assume we are in attack position here
+                            # if dotCanAtk is false, it means that npc is with low action points
+                            # if dotAtkType is None, it means that npc is not in line with player
+                            if dotCanAtk == False and dotAtkType == None:
+                                dotTurnOver = True
+                            elif dotCanAtk and dotAtkType != None:
+                                dotTurnOver = True
+                        else:
+                            dotDirection = dotNpc.futureMoves.pop()
                 else:
                     dotDirection, dotAtkType, dotTurnOver = npcRandomActions(dotNpc.atkTypes)
 
-                # swap turn, reset variable
-                dotCanAtk = True
-                dotCanMove = True
 
             if not dotCanMove:
                 dotDirection = None
@@ -146,6 +162,10 @@ def runGame():
                 turnCounter += 1
                 showedTurnCounter = False
                 dotTurn = not dotTurn
+
+                # Right place to these
+                dotCanMove = True
+                dotCanAtk = True
 
                 dotPlayer.regenerateMP()
                 dotPlayer.regenerateAP()
