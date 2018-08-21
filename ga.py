@@ -8,7 +8,7 @@ import copy
 import config
 
 POPULATION_LIMT = 100
-EPOCH_LIMIT = 5
+EPOCH_LIMIT = 50
 
 def npcGaActions(dotPlayer, dotNpc):
     """
@@ -87,16 +87,22 @@ def npcGaActions(dotPlayer, dotNpc):
     dotDirectionList = []
     population = []
 
+    progressOfIndividuals = []
+
     while epoch <= EPOCH_LIMIT:
         epoch += 1
         # npcNewCoords is dict like Player position attribute
 
-        npcNewCoords, population = findNewCoords(dotPlayer, dotNpc, population)
+        fitness, npcNewCoords, population = findNewCoords(dotPlayer, dotNpc, population)
+
+        progressOfIndividuals.append((epoch, fitness, npcNewCoords, len(population)))
 
         # Here we need to transform npcNewCoords to a list of actions (moves, attack and/or turn over)
         # I think we will need to use python generator
         # But for now we don't. Just return a list with directions. A list as stack, remember. First moves at the top.
         dotDirectionList = transformCoordsToMoveDirections(dotNpc.position, npcNewCoords)
+
+    print(progressOfIndividuals)
 
     return dotDirectionList
 
@@ -156,27 +162,43 @@ def findNewCoords(dotPlayer, dotNpc, population):
     # Necessary?
     population = sorted(population, key=lambda tup: tup[0])
 
-    retCheck, (fitness, individual) = checkForOptimalIndividual(population, dotPlayer, dotNpc)
+    retCheck, (fitness, individual) = checkForOptimalIndividual(population[:len(population)//2], dotPlayer, dotNpc)
 
     if retCheck:
-        # TODO: compute how much MPs has been expended. Really necessary?
-        print(fitness)
-        return individual, onlyCoordinates(population)
+        return fitness, individual, onlyCoordinates(population)
 
     # Now population is a list of individuals only
-    population = performCrossover(population)
+    population = performCrossover(population[:len(population)//2])
 
     population = removeMonstersIfAny(population, dotPlayerCoords, dotNpcCoords, dotNpcMP)
 
-    # population = performMutation(population)
-    # retCheck, (fitness, individual) = checkForOptimalIndividual(population, dotPlayer, dotNpc)
+    population = performMutation(population)
+
+    population = removeMonstersIfAny(population, dotPlayerCoords, dotNpcCoords, dotNpcMP)
+
+    # Necessary, obviously, unless you want to evaluate no fitness.
+    population = computeIndividualsFitness(population, dotPlayerCoords, cutInHalf=False)
+    # As of now, population is a list of tuple (fitness, coords)
+    retCheck, (fitness, individual) = checkForOptimalIndividual(population[:len(population)//2], dotPlayer, dotNpc)
 
     if retCheck:
-        print(fitness, individual)
-        return individual, population
+        return fitness, individual, onlyCoordinates(population)
 
-    return population[0][1], []
+    bestForThisEpochFitness, bestForThisEpochCoords  = population[0]
+
+    return  bestForThisEpochFitness, bestForThisEpochCoords, population
     # first individual, its coords; population
+
+
+def performMutation(population):  # population is a list of coords
+
+    for individual in population:
+        coin = random.choice([True, False])
+        if coin:
+            anotherCoin, coinLimit = random.choice([('x', config.CELL_WIDTH), ('y', config.CELL_HEIGHT)])  # one of the coordinates must be mutated
+            individual[anotherCoin] = random.randint(0, coinLimit - 1)
+
+    return population
 
 
 def performCrossover(population):
@@ -209,7 +231,7 @@ def checkForOptimalIndividual(population, dotPlayer, dotNpc):
     return False, None
 
 
-def computeIndividualsFitness(population, dotPlayerCoords):
+def computeIndividualsFitness(population, dotPlayerCoords, cutInHalf=True):
 
     px = dotPlayerCoords['x']
     py = dotPlayerCoords['y']
@@ -225,7 +247,9 @@ def computeIndividualsFitness(population, dotPlayerCoords):
     # 2nd step
     populationRanked = sorted(populationRanked, key=lambda tup: tup[0])
     sizePopRank = len(populationRanked)
-    population = populationRanked[:sizePopRank//2].copy()
+
+    population = populationRanked.copy()
+
     populationRanked = []
 
     for (fitness, individual) in population:
