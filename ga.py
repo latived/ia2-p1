@@ -4,7 +4,7 @@
 Created by lativ on 21/08/18 at 09:04
 """
 
-def npcGaActions():
+def npcGaActions(dotPlayer, dotNpc):
     """
     1. Verify se npc can attack player
     1.1 If can, attack and pass turn.
@@ -73,4 +73,47 @@ def npcGaActions():
 
 
     """
-    pass
+    dotDirection = None  # UP, DOWN, RIGHT, LEFT (see pygame.locals)
+    dotAtkType = None    # vertical or horizontal
+    dotTurnOver = False  # simple flag indiciate if npc will pass turn
+
+    resultAtkLook, dotAtkType = isAttackPossible(dotPlayer, dotNpc)
+
+    if resultAtkLook:
+        return dotDirection, dotAtkType, dotTurnOver
+    else:
+        return None, None, True  # Just to test: if cannot atk, pass turn
+
+
+def isAttackPossible(dotPlayer, dotNpc):
+    nx = dotNpc.position['x']
+    ny = dotNpc.position['y']
+    px = dotPlayer.position['x']
+    py = dotPlayer.position['y']
+
+    atkType = None
+    atkRangeHor = dotNpc.atkTypes['horizontal'][0]
+    atkRangeVer = dotNpc.atkTypes['vertical'][0]
+
+    # len(enoughAP) = 0 indicates that actionPoints is low
+    enoughAP = [ranges[2] for ranges in dotNpc.atkTypes.values() if dotNpc.actionPoints >= ranges[2]]
+
+    if not len(enoughAP):
+        return False, atkType
+
+    if (nx - atkRangeHor <= px <= nx) and (ny == py):
+        atkType = 'horizontal'
+        return True, atkType
+    elif (nx <= px <= nx + atkRangeHor) and (ny == py):
+        atkType = 'horizontal'
+        return True, atkType
+    elif (ny <= py <= ny + atkRangeVer) and (nx == px):
+        atkType = 'vertical'
+        return True, atkType
+    elif (ny - atkRangeVer <= py <= ny) and (nx == px):
+        atkType = 'vertical'
+        return True, atkType
+    else:
+        return False, atkType
+
+
