@@ -4,10 +4,11 @@
 Created by lativ on 21/08/18 at 09:04
 """
 import random
+import copy
 import config
 
-POPULATION_LIMT = 50
-EPOCH_LIMIT = 1
+POPULATION_LIMT = 100
+EPOCH_LIMIT = 5
 
 def npcGaActions(dotPlayer, dotNpc):
     """
@@ -90,7 +91,7 @@ def npcGaActions(dotPlayer, dotNpc):
         epoch += 1
         # npcNewCoords is dict like Player position attribute
 
-        npcNewCoords = findNewCoords(dotPlayer.position, dotNpc.position, dotNpc.movementPoints, population)
+        npcNewCoords, population = findNewCoords(dotPlayer, dotNpc, population)
 
         # Here we need to transform npcNewCoords to a list of actions (moves, attack and/or turn over)
         # I think we will need to use python generator
@@ -138,19 +139,49 @@ def generateInitialPopulation():
 
     return population
 
-def findNewCoords(dotPlayerCoords, dotNpcCoords, dotNpcMP, population):
+
+def findNewCoords(dotPlayer, dotNpc, population):
+    dotPlayerCoords = dotPlayer.position
+    dotNpcCoords = dotNpc.position
+    dotNpcMP = dotNpc.movementPoints
 
     if len(population) == 0:
         population = generateInitialPopulation()
 
     population = removeMonstersIfAny(population, dotPlayerCoords, dotNpcCoords, dotNpcMP)
 
+    # Now population a list of tuples as (fitness, coords)
     population = computeIndividualsFitness(population, dotPlayerCoords)
 
     population = sorted(population, key=lambda tup: tup[0])
 
-    return population[0][1]
-    # first individual, its coords
+    retCheck, (fitness, individual) = checkForOptimalIndividual(population, dotPlayer, dotNpc)
+
+    if retCheck:
+        # TODO: compute how much MPs has been expended. Really necessary?
+        print(fitness)
+        return individual, onlyCoordinates(population)
+
+    return population[0][1], []
+    # first individual, its coords; population
+
+
+def onlyCoordinates(populationWithFitness):
+    newPopulation = []
+    for individual in populationWithFitness:
+        newPopulation.append(individual[1])
+    return newPopulation
+
+def checkForOptimalIndividual(population, dotPlayer, dotNpc):
+    newDotNpc = copy.copy(dotNpc)
+
+    for (fitness, individual) in population:
+        newDotNpc.position = individual
+        canAtk = isAttackPossible(dotPlayer, newDotNpc)
+        if canAtk:
+            return True, (fitness, individual)
+
+    return False, None
 
 
 def computeIndividualsFitness(population, dotPlayerCoords):
@@ -183,6 +214,7 @@ def computeIndividualsFitness(population, dotPlayerCoords):
 
     return populationRanked
 
+
 def removeMonstersIfAny(population, dotPlayerCoords, dotNpcCoords, dotNpcMP):
     newPopulation = []
     for individual in population:
@@ -197,6 +229,7 @@ def removeMonstersIfAny(population, dotPlayerCoords, dotNpcCoords, dotNpcMP):
             newPopulation.append(individual)
 
     return newPopulation
+
 
 def isAttackPossible(dotPlayer, dotNpc):
     nx = dotNpc.position['x']
