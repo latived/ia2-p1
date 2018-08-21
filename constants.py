@@ -3,17 +3,20 @@
 """
 Created by lativ on 21/08/18 at 07:41
 """
-FPS = 15
-WINDOWWIDTH = 1080
-WINDOWHEIGHT = 720
-BOARDWIDTH = 600
-BOARDHEIGHT = 600
-CELLSIZE = 20
-assert BOARDWIDTH % CELLSIZE == 0, "Window width must be a multiple of cell size."
-assert BOARDHEIGHT % CELLSIZE == 0, "Window height must be a multiple of cell size."
-CELLWIDTH = int(BOARDWIDTH / CELLSIZE)
-CELLHEIGHT = int(BOARDHEIGHT / CELLSIZE)
 
+# BOARD CONSTANTS
+FPS = 15
+WINDOW_WIDTH = 1080
+WINDOW_HEIGHT = 720
+BOARD_WIDTH = 600
+BOARD_HEIGHT = 600
+CELL_SIZE = 20
+assert BOARD_WIDTH % CELL_SIZE == 0, "Window width must be a multiple of cell size."
+assert BOARD_HEIGHT % CELL_SIZE == 0, "Window height must be a multiple of cell size."
+CELL_WIDTH = int(BOARD_WIDTH / CELL_SIZE)
+CELL_HEIGHT = int(BOARD_HEIGHT / CELL_SIZE)
+
+# COLOR CONSTANTS
 #             R    G    B
 WHITE     = (255, 255, 255)
 BLACK     = (  0,   0,   0)
@@ -28,12 +31,11 @@ BGCOLOR = BLACK
 TILECOLOR = RED
 TEXTCOLOR = WHITE
 
+# MOVEMENT CONSTANTS
 UP = 'up'
 DOWN = 'down'
 LEFT = 'left'
 RIGHT = 'right'
-
-HEAD = 0 # syntactic sugar: index of the dot's head
 
 # TURN FLAGS
 TURN_OK = 1

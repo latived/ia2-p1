@@ -10,22 +10,22 @@ from player import Player
 from constants import *
 
 def main():
-    global FPSCLOCK, DISPLAYSURF, BASICFONT, STATUSFONT
-    global RESET_SURF, RESET_RECT, QUIT_SURF, QUIT_RECT
+    global G_FPS_CLOCK, G_DISPLAY_SURF, G_BASIC_FONT, G_STATUS_FONT
+    global G_RESET_SURF, G_RESET_RECT, G_QUIT_SURF, G_QUIT_RECT
 
     pygame.init()
-    FPSCLOCK = pygame.time.Clock()
-    DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
+    G_FPS_CLOCK = pygame.time.Clock()
+    G_DISPLAY_SURF = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     pygame.display.set_caption('DOT-ATTACK')
 
     fontName = 'dejavusansmonoforpowerline'
     fontPath = pygame.font.match_font(fontName)
-    BASICFONT = pygame.font.Font(fontPath, 18)
-    STATUSFONT = pygame.font.Font(fontPath, 12)
+    G_BASIC_FONT = pygame.font.Font(fontPath, 18)
+    G_STATUS_FONT = pygame.font.Font(fontPath, 12)
 
     # store options
-    RESET_SURF, RESET_RECT = makeText(BASICFONT, 'Reset game', TEXTCOLOR, TILECOLOR, BOARDWIDTH + 50, BOARDHEIGHT + 50)
-    QUIT_SURF, QUIT_RECT = makeText(BASICFONT, 'Quit game', TEXTCOLOR, TILECOLOR, BOARDWIDTH + 50, BOARDHEIGHT + 80)
+    G_RESET_SURF, G_RESET_RECT = makeText(G_BASIC_FONT, 'Reset game', TEXTCOLOR, TILECOLOR, BOARD_WIDTH + 50, BOARD_HEIGHT + 50)
+    G_QUIT_SURF, G_QUIT_RECT = makeText(G_BASIC_FONT, 'Quit game', TEXTCOLOR, TILECOLOR, BOARD_WIDTH + 50, BOARD_HEIGHT + 80)
 
     showStartScreen()
     while True:
@@ -65,7 +65,7 @@ def runGame():
         while (gameStarted and dotTurn) and not dotDirection and not dotAtkType and not dotTurnOver:
             for event in pygame.event.get(): # event handling loop
                 if event.type == MOUSEBUTTONUP:
-                    if QUIT_RECT.collidepoint(event.pos):
+                    if G_QUIT_RECT.collidepoint(event.pos):
                         terminate()
                 elif event.type == QUIT:
                     terminate()
@@ -163,19 +163,19 @@ def runGame():
         drawGameWindow(dotPlayer, dotNpc)
         # time.sleep(1)  # wait 1 second before npc moves at window
         pygame.display.update()
-        FPSCLOCK.tick(FPS)
+        G_FPS_CLOCK.tick(FPS)
 
 
 def drawGameWindow(dotPlayer, dotNpc):
-    DISPLAYSURF.fill(BGCOLOR)
+    G_DISPLAY_SURF.fill(BGCOLOR)
 
     drawGrid()
 
     drawDotPlayer(dotPlayer.position)
     drawNpcPlayer(dotNpc.position)
 
-    drawStatus(dotPlayer, BOARDWIDTH + 10, 20, (BOARDWIDTH + 10, 50), (BOARDWIDTH + 150, 50))
-    drawStatus(dotNpc, BOARDWIDTH + 10, BOARDHEIGHT//2, (BOARDWIDTH + 10, BOARDHEIGHT//2 + 30), (BOARDWIDTH + 150, BOARDHEIGHT//2 + 30))
+    drawStatus(dotPlayer, BOARD_WIDTH + 10, 20, (BOARD_WIDTH + 10, 50), (BOARD_WIDTH + 150, 50))
+    drawStatus(dotNpc, BOARD_WIDTH + 10, BOARD_HEIGHT//2, (BOARD_WIDTH + 10, BOARD_HEIGHT//2 + 30), (BOARD_WIDTH + 150, BOARD_HEIGHT//2 + 30))
 
     drawOptions()
 
@@ -294,21 +294,21 @@ def dotMove(direction, dotPosition):
     elif dotPosition['y'] == -1:
         dotPosition['y'] = 0
         return False
-    elif dotPosition['x'] == CELLWIDTH:
-        dotPosition['x'] = CELLWIDTH - 1
+    elif dotPosition['x'] == CELL_WIDTH:
+        dotPosition['x'] = CELL_WIDTH - 1
         return False
-    elif dotPosition['y'] == CELLHEIGHT:
-        dotPosition['y'] = CELLHEIGHT - 1
+    elif dotPosition['y'] == CELL_HEIGHT:
+        dotPosition['y'] = CELL_HEIGHT - 1
         return False
 
     return True
 
 
 def drawPressKeyMsg():
-    pressKeySurf = BASICFONT.render('Press a key to play.', True, DARKGRAY)
+    pressKeySurf = G_BASIC_FONT.render('Press a key to play.', True, DARKGRAY)
     pressKeyRect = pressKeySurf.get_rect()
-    pressKeyRect.topleft = (BOARDWIDTH - 200, BOARDHEIGHT - 30)
-    DISPLAYSURF.blit(pressKeySurf, pressKeyRect)
+    pressKeyRect.topleft = (BOARD_WIDTH - 200, BOARD_HEIGHT - 30)
+    G_DISPLAY_SURF.blit(pressKeySurf, pressKeyRect)
 
 
 def checkForKeyPress():
@@ -331,16 +331,16 @@ def showStartScreen():
     degrees1 = 0
     degrees2 = 0
     while True:
-        DISPLAYSURF.fill(BGCOLOR)
+        G_DISPLAY_SURF.fill(BGCOLOR)
         rotatedSurf1 = pygame.transform.rotate(titleSurf1, degrees1)
         rotatedRect1 = rotatedSurf1.get_rect()
-        rotatedRect1.center = (BOARDWIDTH / 2, BOARDHEIGHT / 2)
-        DISPLAYSURF.blit(rotatedSurf1, rotatedRect1)
+        rotatedRect1.center = (BOARD_WIDTH / 2, BOARD_HEIGHT / 2)
+        G_DISPLAY_SURF.blit(rotatedSurf1, rotatedRect1)
 
         rotatedSurf2 = pygame.transform.rotate(titleSurf2, degrees2)
         rotatedRect2 = rotatedSurf2.get_rect()
-        rotatedRect2.center = (BOARDWIDTH / 2, BOARDHEIGHT / 2)
-        DISPLAYSURF.blit(rotatedSurf2, rotatedRect2)
+        rotatedRect2.center = (BOARD_WIDTH / 2, BOARD_HEIGHT / 2)
+        G_DISPLAY_SURF.blit(rotatedSurf2, rotatedRect2)
 
         drawPressKeyMsg()
 
@@ -348,7 +348,7 @@ def showStartScreen():
             pygame.event.get() # clear event queue
             return
         pygame.display.update()
-        FPSCLOCK.tick(FPS)
+        G_FPS_CLOCK.tick(FPS)
         degrees1 += 3 # rotate by 3 degrees each frame
         degrees2 += 7 # rotate by 7 degrees each frame
 
@@ -360,16 +360,16 @@ def terminate():
 
 def getRandomLocation(xby=False, ybx=False):
 
-    x = random.randint(0, CELLWIDTH - 1)
-    y = random.randint(0, CELLHEIGHT - 1)
+    x = random.randint(0, CELL_WIDTH - 1)
+    y = random.randint(0, CELL_HEIGHT - 1)
 
     if xby:
-        x = random.randint(0, CELLWIDTH - 1)
-        y = random.randint(x, CELLHEIGHT - 1)
+        x = random.randint(0, CELL_WIDTH - 1)
+        y = random.randint(x, CELL_HEIGHT - 1)
 
     if ybx:
-        y = random.randint(0, CELLHEIGHT - 1)
-        x = random.randint(y, CELLWIDTH - 1)
+        y = random.randint(0, CELL_HEIGHT - 1)
+        x = random.randint(y, CELL_WIDTH - 1)
 
     return {'x' : x, 'y': y}
 
@@ -380,11 +380,11 @@ def showGameOverScreen():
     overSurf = gameOverFont.render('Over', True, WHITE)
     gameRect = gameSurf.get_rect()
     overRect = overSurf.get_rect()
-    gameRect.midtop = (BOARDWIDTH / 2, 10)
-    overRect.midtop = (BOARDWIDTH / 2, gameRect.height + 10 + 25)
+    gameRect.midtop = (BOARD_WIDTH / 2, 10)
+    overRect.midtop = (BOARD_WIDTH / 2, gameRect.height + 10 + 25)
 
-    DISPLAYSURF.blit(gameSurf, gameRect)
-    DISPLAYSURF.blit(overSurf, overRect)
+    G_DISPLAY_SURF.blit(gameSurf, gameRect)
+    G_DISPLAY_SURF.blit(overSurf, overRect)
     drawPressKeyMsg()
     pygame.display.update()
     pygame.time.wait(5)
@@ -409,18 +409,18 @@ def drawStatus(player, namePosx, namePosy, lineStart, lineEnd):
     playerName = "Player {}"
 
     # title info text
-    surf, rect = makeText(BASICFONT, playerName.format(player.name), TEXTCOLOR, None, namePosx, namePosy)
-    DISPLAYSURF.blit(surf, rect)
+    surf, rect = makeText(G_BASIC_FONT, playerName.format(player.name), TEXTCOLOR, None, namePosx, namePosy)
+    G_DISPLAY_SURF.blit(surf, rect)
 
     # add separator
-    pygame.draw.line(DISPLAYSURF, DARKGRAY, lineStart, lineEnd)
+    pygame.draw.line(G_DISPLAY_SURF, DARKGRAY, lineStart, lineEnd)
 
     # add attributes (vp, ap, mp, atks, ...)
 
     gapFromNamePosx = 10
 
     # ap
-    vpSurf, vpRect = makeText(STATUSFONT,
+    vpSurf, vpRect = makeText(G_STATUS_FONT,
                               'Vitality points: {}'.format(player.vitalityPoints),
                               TEXTCOLOR,
                               None,
@@ -428,7 +428,7 @@ def drawStatus(player, namePosx, namePosy, lineStart, lineEnd):
                               namePosy + 55)
 
     # ap
-    apSurf, apRect = makeText(STATUSFONT,
+    apSurf, apRect = makeText(G_STATUS_FONT,
                               'Action points: {}'.format(player.actionPoints),
                               TEXTCOLOR,
                               None,
@@ -436,7 +436,7 @@ def drawStatus(player, namePosx, namePosy, lineStart, lineEnd):
                               namePosy + 55 + 15)
 
     # mp
-    mpSurf, mpRect = makeText(STATUSFONT,
+    mpSurf, mpRect = makeText(G_STATUS_FONT,
                               'Movement points: {}'.format(player.movementPoints),
                               TEXTCOLOR,
                               None,
@@ -444,7 +444,7 @@ def drawStatus(player, namePosx, namePosy, lineStart, lineEnd):
                               namePosy + 55 + 30)
 
 
-    atkHorSurf, atkHorRect = makeText(STATUSFONT,
+    atkHorSurf, atkHorRect = makeText(G_STATUS_FONT,
                                       'Horizontal attack: takes {} VPs in any dot at the range {}.'.
                                       format(player.atkTypes['horizontal'][0], player.atkTypes['horizontal'][1]),
                                       TEXTCOLOR,
@@ -452,7 +452,7 @@ def drawStatus(player, namePosx, namePosy, lineStart, lineEnd):
                                       namePosx + gapFromNamePosx,
                                       namePosy + 55 + 45)
 
-    atkVerSurf, atkVerRect = makeText(STATUSFONT,
+    atkVerSurf, atkVerRect = makeText(G_STATUS_FONT,
                                       'Vertical attack: takes {} VPs in any dot at the range {}.'.
                                       format(player.atkTypes['vertical'][0], player.atkTypes['vertical'][1]),
                                       TEXTCOLOR,
@@ -460,21 +460,21 @@ def drawStatus(player, namePosx, namePosy, lineStart, lineEnd):
                                       namePosx + gapFromNamePosx,
                                       namePosy + 55 + 60)
 
-    DISPLAYSURF.blit(vpSurf, vpRect)
-    DISPLAYSURF.blit(apSurf, apRect)
-    DISPLAYSURF.blit(mpSurf, mpRect)
-    DISPLAYSURF.blit(atkHorSurf, atkHorRect)
-    DISPLAYSURF.blit(atkVerSurf, atkVerRect)
+    G_DISPLAY_SURF.blit(vpSurf, vpRect)
+    G_DISPLAY_SURF.blit(apSurf, apRect)
+    G_DISPLAY_SURF.blit(mpSurf, mpRect)
+    G_DISPLAY_SURF.blit(atkHorSurf, atkHorRect)
+    G_DISPLAY_SURF.blit(atkVerSurf, atkVerRect)
 
 
 
 def drawOptions():
     # separators at horizontal and vertical right beside and alongside last board point
-    pygame.draw.line(DISPLAYSURF, DARKGRAY, (BOARDWIDTH, BOARDHEIGHT), (WINDOWWIDTH, BOARDHEIGHT))
-    pygame.draw.line(DISPLAYSURF, DARKGRAY, (BOARDWIDTH, BOARDHEIGHT), (BOARDWIDTH, WINDOWHEIGHT))
+    pygame.draw.line(G_DISPLAY_SURF, DARKGRAY, (BOARD_WIDTH, BOARD_HEIGHT), (WINDOW_WIDTH, BOARD_HEIGHT))
+    pygame.draw.line(G_DISPLAY_SURF, DARKGRAY, (BOARD_WIDTH, BOARD_HEIGHT), (BOARD_WIDTH, WINDOW_HEIGHT))
 
-    DISPLAYSURF.blit(RESET_SURF, RESET_RECT)
-    DISPLAYSURF.blit(QUIT_SURF, QUIT_RECT)
+    G_DISPLAY_SURF.blit(G_RESET_SURF, G_RESET_RECT)
+    G_DISPLAY_SURF.blit(G_QUIT_SURF, G_QUIT_RECT)
 
 
 def drawAttack(dotPlayingCoords, atkType, atkRange):
@@ -485,7 +485,7 @@ def drawAttack(dotPlayingCoords, atkType, atkRange):
     atkCoords = []
     if atkType == 'horizontal':
         for i in range(atkRange):
-            if dotPosx + i + 1 < CELLWIDTH:
+            if dotPosx + i + 1 < CELL_WIDTH:
                 newCellAtRight = {'x' : dotPosx + i + 1, 'y': dotPosy }
                 atkCoords.append(newCellAtRight)
             if dotPosx - i - 1 >= 0:
@@ -496,40 +496,40 @@ def drawAttack(dotPlayingCoords, atkType, atkRange):
             if dotPosy - i - 1 >= 0:
                 newCellAbove = {'x': dotPosx, 'y' : dotPosy - i - 1 }
                 atkCoords.append(newCellAbove)
-            if dotPosy + i + 1 < CELLHEIGHT:
+            if dotPosy + i + 1 < CELL_HEIGHT:
                 newCellBelow = {'x': dotPosx, 'y' : dotPosy + i + 1 }
                 atkCoords.insert(0, newCellBelow)
 
     for coord in atkCoords:
-        x = coord['x'] * CELLSIZE
-        y = coord['y'] * CELLSIZE
-        dotSegmentRect = pygame.Rect(x, y, CELLSIZE, CELLSIZE)
-        pygame.draw.rect(DISPLAYSURF, DARKBLUE, dotSegmentRect)
-        dotInnerSegmentRect = pygame.Rect(x + 4, y + 4, CELLSIZE - 8, CELLSIZE - 8)
-        pygame.draw.rect(DISPLAYSURF, BLUE, dotInnerSegmentRect)
+        x = coord['x'] * CELL_SIZE
+        y = coord['y'] * CELL_SIZE
+        dotSegmentRect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
+        pygame.draw.rect(G_DISPLAY_SURF, DARKBLUE, dotSegmentRect)
+        dotInnerSegmentRect = pygame.Rect(x + 4, y + 4, CELL_SIZE - 8, CELL_SIZE - 8)
+        pygame.draw.rect(G_DISPLAY_SURF, BLUE, dotInnerSegmentRect)
 
 
 def drawDotPlayer(playerCoords):
-    x = playerCoords['x'] * CELLSIZE
-    y = playerCoords['y'] * CELLSIZE
-    dotSegmentRect = pygame.Rect(x, y, CELLSIZE, CELLSIZE)
-    pygame.draw.rect(DISPLAYSURF, DARKGREEN, dotSegmentRect)
-    dotInnerSegmentRect = pygame.Rect(x + 4, y + 4, CELLSIZE - 8, CELLSIZE - 8)
-    pygame.draw.rect(DISPLAYSURF, GREEN, dotInnerSegmentRect)
+    x = playerCoords['x'] * CELL_SIZE
+    y = playerCoords['y'] * CELL_SIZE
+    dotSegmentRect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
+    pygame.draw.rect(G_DISPLAY_SURF, DARKGREEN, dotSegmentRect)
+    dotInnerSegmentRect = pygame.Rect(x + 4, y + 4, CELL_SIZE - 8, CELL_SIZE - 8)
+    pygame.draw.rect(G_DISPLAY_SURF, GREEN, dotInnerSegmentRect)
 
 
 def drawNpcPlayer(npcCoords):
-    x = npcCoords['x'] * CELLSIZE
-    y = npcCoords['y'] * CELLSIZE
-    npcRect = pygame.Rect(x, y, CELLSIZE, CELLSIZE)
-    pygame.draw.rect(DISPLAYSURF, RED, npcRect)
+    x = npcCoords['x'] * CELL_SIZE
+    y = npcCoords['y'] * CELL_SIZE
+    npcRect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
+    pygame.draw.rect(G_DISPLAY_SURF, RED, npcRect)
 
 
 def drawGrid():
-    for x in range(0, BOARDWIDTH + 1, CELLSIZE): # draw vertical lines
-        pygame.draw.line(DISPLAYSURF, DARKGRAY, (x, 0), (x, BOARDHEIGHT))
-    for y in range(0, BOARDHEIGHT + 1, CELLSIZE): # draw horizontal lines
-        pygame.draw.line(DISPLAYSURF, DARKGRAY, (0, y), (BOARDWIDTH, y))
+    for x in range(0, BOARD_WIDTH + 1, CELL_SIZE): # draw vertical lines
+        pygame.draw.line(G_DISPLAY_SURF, DARKGRAY, (x, 0), (x, BOARD_HEIGHT))
+    for y in range(0, BOARD_HEIGHT + 1, CELL_SIZE): # draw horizontal lines
+        pygame.draw.line(G_DISPLAY_SURF, DARKGRAY, (0, y), (BOARD_WIDTH, y))
 
 
 if __name__ == '__main__':
