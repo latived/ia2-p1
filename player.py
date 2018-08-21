@@ -21,10 +21,12 @@ class Player():
 
     def regenerateMP(self):
         self.movementPoints = START_MP
+        print("\t{} regenerates to {} movement points.".format(self.name, self.movementPoints))
 
 
     def regenerateAP(self):
         if self.actionPoints < self.getMaximumAP():
+            print("\t{} regenerates 1 action point: {} now.".format(self.name, self.actionPoints))
             self.actionPoints += 1
 
 
