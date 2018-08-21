@@ -180,6 +180,11 @@ def runGame():
                 showedTurnCounter = False
                 dotTurn = not dotTurn
 
+                dotPlayer.regenerateMP()
+                dotPlayer.regenerateAP()
+                dotNpc.regenerateMP()
+                dotNpc.regenerateAP()
+
         gameStarted = True  # not necessary anymore after the game starts
 
         drawGameWindow(dotPlayer, dotNpc)
