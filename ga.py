@@ -6,6 +6,8 @@ Created by lativ on 21/08/18 at 09:04
 import random
 import config
 
+POPULATION_LIMT = 50
+
 def npcGaActions(dotPlayer, dotNpc):
     """
     1. Verify se npc can attack player
@@ -81,10 +83,10 @@ def npcGaActions(dotPlayer, dotNpc):
 
     # npcNewCoords is dict like Player position attribute
     npcNewCoords = findNewCoords(dotPlayer.position, dotNpc.position, dotNpc.movementPoints)
+
     # Here we need to transform npcNewCoords to a list of actions (moves, attack and/or turn over)
     # I think we will need to use python generator
     # But for now we don't. Just return a list with directions. A list as stack, remember. First moves at the top.
-
     dotDirectionList = transformCoordsToMoveDirections(dotNpc.position, npcNewCoords)
 
     return dotDirectionList
@@ -119,13 +121,33 @@ def transformCoordsToMoveDirections(dotNpcCoords, dotNpcCoordsNew):
 
 
 def findNewCoords(dotPlayerCoords, dotNpcCoords, dotNpcMP):
+    population = []
+    for _ in range(POPULATION_LIMT):
+        x = random.randint(0, config.CELL_WIDTH - 1)
+        y = random.randint(0, config.CELL_HEIGHT - 1)
+        individual = {'x' : x, 'y': y}
+        population.append(individual)
 
-    # Testing...
-    x = random.randint(0, config.CELL_WIDTH - 1)
-    y = random.randint(0, config.CELL_HEIGHT - 1)
+    populationWithoutMonsters = removeMonstersIfAny(population, dotPlayerCoords, dotNpcCoords, dotNpcMP)
 
-    return {'x' : x, 'y': y}
+    #return population
+    # Last for test purposes
+    return population[-1]
 
+def removeMonstersIfAny(population, dotPlayerCoords, dotNpcCoords, dotNpcMP):
+    newPopulation = []
+    for individual in population:
+        ix = individual['x']
+        iy = individual['y']
+        npcx = dotNpcCoords['x']
+        npcy = dotNpcCoords['y']
+        px = dotPlayerCoords['x']
+        py = dotPlayerCoords['y']
+        monster = abs(ix - npcx) + abs(iy - npcy) <= dotNpcMP or (ix == px and iy == py)
+        if not monster:
+            newPopulation.append(individual)
+
+    return newPopulation
 
 def isAttackPossible(dotPlayer, dotNpc):
     nx = dotNpc.position['x']
