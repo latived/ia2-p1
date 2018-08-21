@@ -143,11 +143,45 @@ def findNewCoords(dotPlayerCoords, dotNpcCoords, dotNpcMP, population):
     if len(population) == 0:
         population = generateInitialPopulation()
 
-    populationWithoutMonsters = removeMonstersIfAny(population, dotPlayerCoords, dotNpcCoords, dotNpcMP)
+    population = removeMonstersIfAny(population, dotPlayerCoords, dotNpcCoords, dotNpcMP)
 
-    #return population
-    # Last for test purposes
-    return populationWithoutMonsters[-1]
+    population = computeIndividualsFitness(population, dotPlayerCoords)
+
+    population = sorted(population, key=lambda tup: tup[0])
+
+    return population[0][1]
+    # first individual, its coords
+
+
+def computeIndividualsFitness(population, dotPlayerCoords):
+
+    px = dotPlayerCoords['x']
+    py = dotPlayerCoords['y']
+
+    populationRanked = []
+
+    for individual in population:
+        ix = individual['x']
+        iy = individual['y']
+        fitness = min(abs(px - ix), abs(py - iy))
+        populationRanked.append((fitness, individual))
+
+    # 2nd step
+    populationRanked = sorted(populationRanked, key=lambda tup: tup[0])
+    sizePopRank = len(populationRanked)
+    population = populationRanked[:sizePopRank//2].copy()
+    populationRanked = []
+
+    for (fitness, individual) in population:
+        ix = individual['x']
+        iy = individual['y']
+        if (abs(px - ix) < abs(py - iy)):
+            newFitness = fitness + abs(py - iy)
+        else:
+            newFitness = fitness + abs(px - ix)
+        populationRanked.append((newFitness, individual))
+
+    return populationRanked
 
 def removeMonstersIfAny(population, dotPlayerCoords, dotNpcCoords, dotNpcMP):
     newPopulation = []
