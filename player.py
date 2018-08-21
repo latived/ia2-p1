@@ -11,13 +11,24 @@ START_MP = 10   # Move points
 class Player():
 
     def __init__(self, name, location, atkTypes, vitalityPoints=START_VP, movPoints=START_MP):
-        # Only considering two atkTypes, and one atk each. Need to update below whenever we add more atks.
-        higherAtksCost = [atk[2] for atk in atkTypes.values()]
-        higherAtksCost.sort(reverse=True)
-
         self.name = name
         self.position = location
-        self.vitalityPoints = vitalityPoints
-        self.actionPoints = sum(higherAtksCost[:2]) - 1  # So player can't use two atks.
-        self.movementPoints = movPoints
         self.atkTypes = atkTypes
+        self.vitalityPoints = vitalityPoints
+        self.actionPoints = self.getMaximumAP()
+        self.movementPoints = movPoints
+
+
+    def regenerateMP(self):
+        self.movementPoints = START_MP
+
+
+    def regenerateAP(self):
+        if self.actionPoints < self.getMaximumAP():
+            self.actionPoints += 1
+
+
+    def getMaximumAP(self):
+        higherAtksCost = [atk[2] for atk in self.atkTypes.values()]
+        higherAtksCost.sort(reverse=True)
+        return sum(higherAtksCost[:2]) - 1
