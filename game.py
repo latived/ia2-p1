@@ -8,7 +8,7 @@ import random, pygame, sys, time
 # from pygame.locals import *
 import pygame.locals as pl
 
-import config
+import config, ga
 from player import Player
 
 
@@ -49,6 +49,8 @@ def runGame():
     dotCanMove = True
     turnCounter = 1
     showedTurnCounter = False
+
+    npcGaControlled = True  # tell if we have random actions or ga controlled actions
 
     while True: # main game loop
         # direction = getRandomDirection()
@@ -102,7 +104,10 @@ def runGame():
                 showedTurnCounter = True
 
             if not dotTurn:
-                dotDirection, dotAtkType, dotTurnOver = npcRandomActions(dotNpc.atkTypes)
+                if npcGaControlled:
+                    dotDirection, dotAtkType, dotTurnOver = ga.npcGaActions(dotPlayer, dotNpc)
+                else:
+                    dotDirection, dotAtkType, dotTurnOver = npcRandomActions(dotNpc.atkTypes)
 
                 # swap turn, reset variable
                 dotCanAtk = True
