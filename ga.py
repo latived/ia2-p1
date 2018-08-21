@@ -153,6 +153,7 @@ def findNewCoords(dotPlayer, dotNpc, population):
     # Now population a list of tuples as (fitness, coords)
     population = computeIndividualsFitness(population, dotPlayerCoords)
 
+    # Necessary?
     population = sorted(population, key=lambda tup: tup[0])
 
     retCheck, (fitness, individual) = checkForOptimalIndividual(population, dotPlayer, dotNpc)
@@ -162,9 +163,33 @@ def findNewCoords(dotPlayer, dotNpc, population):
         print(fitness)
         return individual, onlyCoordinates(population)
 
+    # Now population is a list of individuals only
+    population = performCrossover(population)
+
+    population = removeMonstersIfAny(population, dotPlayerCoords, dotNpcCoords, dotNpcMP)
+
+    # population = performMutation(population)
+    # retCheck, (fitness, individual) = checkForOptimalIndividual(population, dotPlayer, dotNpc)
+
+    if retCheck:
+        print(fitness, individual)
+        return individual, population
+
     return population[0][1], []
     # first individual, its coords; population
 
+
+def performCrossover(population):
+    newPopulation = []
+
+    for (fitness, individual) in population:
+        _, mate = random.choice(population)
+        child = {'x' : individual['x'], 'y': mate['y']}
+        newPopulation.append(child)
+        child = {'x' : mate['x'], 'y': individual['y']}
+        newPopulation.append(child)
+
+    return newPopulation
 
 def onlyCoordinates(populationWithFitness):
     newPopulation = []
@@ -215,9 +240,14 @@ def computeIndividualsFitness(population, dotPlayerCoords):
     return populationRanked
 
 
-def removeMonstersIfAny(population, dotPlayerCoords, dotNpcCoords, dotNpcMP):
+def removeMonstersIfAny(population, dotPlayerCoords, dotNpcCoords, dotNpcMP, unpackBeforeEval=False):
     newPopulation = []
-    for individual in population:
+    for fit_ind in population:
+        # little gamby
+        if unpackBeforeEval:
+            _, individual = fit_ind
+        else:
+            individual = fit_ind
         ix = individual['x']
         iy = individual['y']
         npcx = dotNpcCoords['x']
