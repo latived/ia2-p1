@@ -45,6 +45,8 @@ TURN_OK = 1
 TURN_MOVE_FAIL_OB = 2  # OB stands for Off Board
 TURN_MOVE_FAIL_MP = 3  # MP stands for Movement Points
 TURN_ATK_FAIL = 4
+TURN_ATK_KILLA = 5
+
 
 def main():
     global FPSCLOCK, DISPLAYSURF, BASICFONT, STATUSFONT
@@ -131,6 +133,8 @@ def runGame():
         if gameStarted:
             if not showedTurnCounter:
                 print("Turn {}".format(turnCounter))
+                print("\t* {} points: {} VP, {} AP, {} MP.".format(dotPlayer.name, dotPlayer.vitalityPoints, dotPlayer.actionPoints, dotPlayer.movementPoints))
+                print("\t* {} points: {} VP, {} AP, {} MP.".format(dotNpc.name, dotNpc.vitalityPoints, dotNpc.actionPoints, dotNpc.movementPoints))
                 showedTurnCounter = True
 
             if not dotTurn:
@@ -173,9 +177,17 @@ def runGame():
                     dotCanAtk = False
 
                 continue
+            else:
+                if turnResult == TURN_ATK_KILLA:  # Game is over, okay?
+                    return #
 
             # change turn
             if dotTurnOver:
+                if dotTurn:
+                    print("\t{} passes the turn over to {}.".format(dotPlayer.name, dotNpc.name))
+                else:
+                    print("\t{} passes the turn over to {}.".format(dotNpc.name, dotPlayer.name))
+
                 turnCounter += 1
                 showedTurnCounter = False
                 dotTurn = not dotTurn
@@ -260,14 +272,20 @@ def doDotTurn(player, npc, dotDirection, dotTurn, dotAtkType):
         if hit:
             damage = dotPlaying.atkTypes[dotAtkType][1]
 
-            print("\t{} attacked {}ly {} and infriges {} damage points.".
-                  format(dotPlaying.name, dotAtkType, dotWaiting.name, damage))
+            print("\t{} attacked {}ly {} and infriges {} damage points (now with {} VPs).".
+                  format(dotPlaying.name, dotAtkType, dotWaiting.name, damage, dotWaiting.vitalityPoints - damage))
 
             dotWaiting.vitalityPoints -= damage
+
+            if dotWaiting.vitalityPoints <= 0:
+                print("\t{} fucking killed {}, man. Well done, well done.".format(dotPlaying.name, dotWaiting.name))
+                return TURN_ATK_KILLA, True
+
         else:
             print("\t{} attacked {}ly {} but missed.".
                   format(dotPlaying.name, dotAtkType, dotWaiting.name))
 
+        print("\t\t... its action points goes to {}.".format(dotPlaying.actionPoints))
     # move the dot in the direction it is moving, obviously
     elif dotDirection:
 
@@ -279,10 +297,10 @@ def doDotTurn(player, npc, dotDirection, dotTurn, dotAtkType):
 
         if moveResult:
             dotPlaying.movementPoints -= 1
-            print("\t{} moves from ({}, {}) to ({}, {})".format(dotPlaying.name,
+            print("\t{} moves from ({}, {}) to ({}, {}).".format(dotPlaying.name,
                                                 previousPos['x'], previousPos['y'],
                                                 dotPlaying.position['x'], dotPlaying.position['y']))
-
+            print("\t\t... its movement points goes to {}.".format(dotPlaying.movementPoints))
         else:
             print("\t{}: movement to off the board is invalid. Try again.".format(dotPlaying.name))
             return TURN_MOVE_FAIL_OB, False
@@ -408,7 +426,7 @@ def showGameOverScreen():
     DISPLAYSURF.blit(overSurf, overRect)
     drawPressKeyMsg()
     pygame.display.update()
-    pygame.time.wait(500)
+    pygame.time.wait(5)
     checkForKeyPress() # clear out any key presses in the event queue
 
     while True:
