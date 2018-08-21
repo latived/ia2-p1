@@ -7,6 +7,7 @@ import random
 import config
 
 POPULATION_LIMT = 50
+EPOCH_LIMIT = 1
 
 def npcGaActions(dotPlayer, dotNpc):
     """
@@ -81,13 +82,20 @@ def npcGaActions(dotPlayer, dotNpc):
     dotAtkType = None    # vertical or horizontal
     dotTurnOver = False  # simple flag indiciate if npc will pass turn
 
-    # npcNewCoords is dict like Player position attribute
-    npcNewCoords = findNewCoords(dotPlayer.position, dotNpc.position, dotNpc.movementPoints)
+    epoch = 0
+    dotDirectionList = []
+    population = []
 
-    # Here we need to transform npcNewCoords to a list of actions (moves, attack and/or turn over)
-    # I think we will need to use python generator
-    # But for now we don't. Just return a list with directions. A list as stack, remember. First moves at the top.
-    dotDirectionList = transformCoordsToMoveDirections(dotNpc.position, npcNewCoords)
+    while epoch <= EPOCH_LIMIT:
+        epoch += 1
+        # npcNewCoords is dict like Player position attribute
+
+        npcNewCoords = findNewCoords(dotPlayer.position, dotNpc.position, dotNpc.movementPoints, population)
+
+        # Here we need to transform npcNewCoords to a list of actions (moves, attack and/or turn over)
+        # I think we will need to use python generator
+        # But for now we don't. Just return a list with directions. A list as stack, remember. First moves at the top.
+        dotDirectionList = transformCoordsToMoveDirections(dotNpc.position, npcNewCoords)
 
     return dotDirectionList
 
@@ -120,7 +128,7 @@ def transformCoordsToMoveDirections(dotNpcCoords, dotNpcCoordsNew):
     return actualMoves
 
 
-def findNewCoords(dotPlayerCoords, dotNpcCoords, dotNpcMP):
+def generateInitialPopulation():
     population = []
     for _ in range(POPULATION_LIMT):
         x = random.randint(0, config.CELL_WIDTH - 1)
@@ -128,11 +136,18 @@ def findNewCoords(dotPlayerCoords, dotNpcCoords, dotNpcMP):
         individual = {'x' : x, 'y': y}
         population.append(individual)
 
+    return population
+
+def findNewCoords(dotPlayerCoords, dotNpcCoords, dotNpcMP, population):
+
+    if len(population) == 0:
+        population = generateInitialPopulation()
+
     populationWithoutMonsters = removeMonstersIfAny(population, dotPlayerCoords, dotNpcCoords, dotNpcMP)
 
     #return population
     # Last for test purposes
-    return population[-1]
+    return populationWithoutMonsters[-1]
 
 def removeMonstersIfAny(population, dotPlayerCoords, dotNpcCoords, dotNpcMP):
     newPopulation = []
