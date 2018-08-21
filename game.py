@@ -119,10 +119,11 @@ def runGame():
                             dotCanMove = False  # we assume we are in attack position here
                             # if dotCanAtk is false, it means that npc is with low action points
                             # if dotAtkType is None, it means that npc is not in line with player
-                            if dotCanAtk == False and dotAtkType == None:
+                            if dotCanAtk == False:
                                 dotTurnOver = True
-                            elif dotCanAtk and dotAtkType != None:
+                            elif dotCanAtk:
                                 dotTurnOver = True
+
                         else:
                             dotDirection = dotNpc.futureMoves.pop()
                 else:
