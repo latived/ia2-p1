@@ -27,10 +27,10 @@ def main():
     G_RESET_SURF, G_RESET_RECT = makeText(G_BASIC_FONT, 'Reset game', TEXTCOLOR, TILECOLOR, BOARD_WIDTH + 50, BOARD_HEIGHT + 50)
     G_QUIT_SURF, G_QUIT_RECT = makeText(G_BASIC_FONT, 'Quit game', TEXTCOLOR, TILECOLOR, BOARD_WIDTH + 50, BOARD_HEIGHT + 80)
 
-    showStartScreen()
+    drawStartScreen()
     while True:
         runGame()
-        showGameOverScreen()
+        drawGameOverScreen()
 
 
 def runGame():
@@ -67,6 +67,8 @@ def runGame():
                 if event.type == MOUSEBUTTONUP:
                     if G_QUIT_RECT.collidepoint(event.pos):
                         terminate()
+                    elif G_RESET_RECT.collidepoint(event.pos):
+                        return
                 elif event.type == QUIT:
                     terminate()
                 elif event.type == KEYDOWN:
@@ -323,7 +325,7 @@ def checkForKeyPress():
     return keyUpEvents[0].key
 
 
-def showStartScreen():
+def drawStartScreen():
     titleFont = pygame.font.Font('freesansbold.ttf', 100)
     titleSurf1 = titleFont.render('DotAtk!!', True, WHITE, DARKGREEN)
     titleSurf2 = titleFont.render('DotAtk!!', True, GREEN)
@@ -374,7 +376,10 @@ def getRandomLocation(xby=False, ybx=False):
     return {'x' : x, 'y': y}
 
 
-def showGameOverScreen():
+def drawGameOverScreen():
+
+    print('GAME OVER, FRIEND.')
+
     gameOverFont = pygame.font.Font('freesansbold.ttf', 150)
     gameSurf = gameOverFont.render('Game', True, WHITE)
     overSurf = gameOverFont.render('Over', True, WHITE)
