@@ -102,21 +102,7 @@ def runGame():
                 showedTurnCounter = True
 
             if not dotTurn:
-                dotDirection = getRandomDirection()
-                dotAtkType = random.choice(list(dotNpc.atkTypes))  # because only npc enters here (it is its turn)
-                dotTurnOver = random.choice([True, False])
-                # choose action (1 to move, 2 to atk, 3 to turn over)
-                action = random.randint(1, 3)
-
-                if action == 1:
-                    dotAtkType = None
-                    dotTurnOver = False
-                elif action == 2:
-                    dotDirection = None
-                    dotTurnOver = False
-                else:
-                    dotDirection = None
-                    dotAtkType = None
+                dotDirection, dotAtkType, dotTurnOver = npcRandomActions(dotNpc.atkTypes)
 
                 # swap turn, reset variable
                 dotCanAtk = True
@@ -309,6 +295,26 @@ def dotMove(direction, dotPosition):
         return False
 
     return True
+
+
+def npcRandomActions(dotNpcAtkTypes):
+    dotDirection = getRandomDirection()
+    dotAtkType = random.choice(list(dotNpcAtkTypes))  # because only npc enters here (it is its turn)
+    dotTurnOver = random.choice([True, False])
+    # choose action (1 to move, 2 to atk, 3 to turn over)
+    action = random.randint(1, 3)
+
+    if action == 1:
+        dotAtkType = None
+        dotTurnOver = False
+    elif action == 2:
+        dotDirection = None
+        dotTurnOver = False
+    else:
+        dotDirection = None
+        dotAtkType = None
+
+    return dotDirection, dotAtkType, dotTurnOver
 
 
 def drawPressKeyMsg():
