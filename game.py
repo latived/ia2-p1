@@ -136,6 +136,20 @@ def runGame():
             if not dotTurn:
                 dotDirection = getRandomDirection()
                 dotAtkType = random.choice(list(dotNpc.atkTypes))  # because only npc enters here (it is its turn)
+                dotTurnOver = random.choice([True, False])
+                # choose action (1 to move, 2 to atk, 3 to turn over)
+                action = random.randint(1, 3)
+
+                if action == 1:
+                    dotAtkType = None
+                    dotTurnOver = False
+                elif action == 2:
+                    dotDirection = None
+                    dotTurnOver = False
+                else:
+                    dotDirection = None
+                    dotAtkType = None
+
                 # swap turn, reset variable
                 dotCanAtk = True
                 dotCanMove = True
