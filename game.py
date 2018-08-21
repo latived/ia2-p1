@@ -4,28 +4,29 @@
 # Released under a "Simplified BSD" license
 
 import random, pygame, sys, time
-from pygame.locals import *
 
+# from pygame.locals import *
+import pygame.locals as pl
+
+import config
 from player import Player
-from constants import *
+
 
 def main():
-    global G_FPS_CLOCK, G_DISPLAY_SURF, G_BASIC_FONT, G_STATUS_FONT
-    global G_RESET_SURF, G_RESET_RECT, G_QUIT_SURF, G_QUIT_RECT
 
     pygame.init()
-    G_FPS_CLOCK = pygame.time.Clock()
-    G_DISPLAY_SURF = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+    config.G_FPS_CLOCK = pygame.time.Clock()
+    config.G_DISPLAY_SURF = pygame.display.set_mode((config.WINDOW_WIDTH, config.WINDOW_HEIGHT))
     pygame.display.set_caption('DOT-ATTACK')
 
     fontName = 'dejavusansmonoforpowerline'
     fontPath = pygame.font.match_font(fontName)
-    G_BASIC_FONT = pygame.font.Font(fontPath, 18)
-    G_STATUS_FONT = pygame.font.Font(fontPath, 12)
+    config.G_BASIC_FONT = pygame.font.Font(fontPath, 18)
+    config.G_STATUS_FONT = pygame.font.Font(fontPath, 12)
 
     # store options
-    G_RESET_SURF, G_RESET_RECT = makeText(G_BASIC_FONT, 'Reset game', TEXTCOLOR, TILECOLOR, BOARD_WIDTH + 50, BOARD_HEIGHT + 50)
-    G_QUIT_SURF, G_QUIT_RECT = makeText(G_BASIC_FONT, 'Quit game', TEXTCOLOR, TILECOLOR, BOARD_WIDTH + 50, BOARD_HEIGHT + 80)
+    config.G_RESET_SURF, config.G_RESET_RECT = makeText(config.G_BASIC_FONT, 'Reset game', config.TEXTCOLOR, config.TILECOLOR, config.BOARD_WIDTH + 50, config.BOARD_HEIGHT + 50)
+    config.G_QUIT_SURF, config.G_QUIT_RECT = makeText(config.G_BASIC_FONT, 'Quit game', config.TEXTCOLOR, config.TILECOLOR, config.BOARD_WIDTH + 50, config.BOARD_HEIGHT + 80)
 
     drawStartScreen()
     while True:
@@ -64,32 +65,32 @@ def runGame():
         # if game started and is player turn, wait event (move or attack or pass over the turn)
         while (gameStarted and dotTurn) and not dotDirection and not dotAtkType and not dotTurnOver:
             for event in pygame.event.get(): # event handling loop
-                if event.type == MOUSEBUTTONUP:
-                    if G_QUIT_RECT.collidepoint(event.pos):
+                if event.type == pl.MOUSEBUTTONUP:
+                    if config.G_QUIT_RECT.collidepoint(event.pos):
                         terminate()
-                    elif G_RESET_RECT.collidepoint(event.pos):
+                    elif config.G_RESET_RECT.collidepoint(event.pos):
                         return
-                elif event.type == QUIT:
+                elif event.type == pl.QUIT:
                     terminate()
-                elif event.type == KEYDOWN:
+                elif event.type == pl.KEYDOWN:
                     # check for pass over turn
-                    if (event.key == K_p):
+                    if (event.key == pl.K_p):
                         dotTurnOver = True
                     # check for attack
-                    elif (event.key == K_h):
+                    elif (event.key == pl.K_h):
                         dotAtkType = 'horizontal'
-                    elif (event.key == K_v):
+                    elif (event.key == pl.K_v):
                         dotAtkType = 'vertical'
                     # check for movement
-                    elif (event.key == K_LEFT or event.key == K_a) and dotDirection != RIGHT:
-                        dotDirection = LEFT
-                    elif (event.key == K_RIGHT or event.key == K_d) and dotDirection != LEFT:
-                        dotDirection = RIGHT
-                    elif (event.key == K_UP or event.key == K_w) and dotDirection != DOWN:
-                        dotDirection = UP
-                    elif (event.key == K_DOWN or event.key == K_s) and dotDirection != UP:
-                        dotDirection = DOWN
-                    elif event.key == K_ESCAPE:
+                    elif (event.key == pl.K_LEFT or event.key == pl.K_a):
+                        dotDirection = config.LEFT
+                    elif (event.key == pl.K_RIGHT or event.key == pl.K_d):
+                        dotDirection = config.RIGHT
+                    elif (event.key == pl.K_UP or event.key == pl.K_w):
+                        dotDirection = config.UP
+                    elif (event.key == pl.K_DOWN or event.key == pl.K_s):
+                        dotDirection = config.DOWN
+                    elif event.key == pl.K_ESCAPE:
                         terminate()
 
         # TODO: put these print below in a log section at game window
@@ -130,18 +131,18 @@ def runGame():
             turnResult, turnFlag = doDotTurn(dotPlayer, dotNpc, dotDirection, dotTurn, dotAtkType)
 
             if not turnFlag:
-                if turnResult == TURN_MOVE_FAIL_OB:
+                if turnResult == config.TURN_MOVE_FAIL_OB:
                     pass
-                elif turnResult == TURN_MOVE_FAIL_MP:
+                elif turnResult == config.TURN_MOVE_FAIL_MP:
                     # force player/npc to atk or pass turn
                     dotCanMove = False
-                elif turnResult == TURN_ATK_FAIL:
+                elif turnResult == config.TURN_ATK_FAIL:
                     # force player/npc to move or pass turn
                     dotCanAtk = False
 
                 continue
             else:
-                if turnResult == TURN_ATK_KILLA:  # Game is over, okay?
+                if turnResult == config.TURN_ATK_KILLA:  # Game is over, okay?
                     return #
 
             # change turn
@@ -165,19 +166,23 @@ def runGame():
         drawGameWindow(dotPlayer, dotNpc)
         # time.sleep(1)  # wait 1 second before npc moves at window
         pygame.display.update()
-        G_FPS_CLOCK.tick(FPS)
+        config.G_FPS_CLOCK.tick(config.FPS)
 
 
 def drawGameWindow(dotPlayer, dotNpc):
-    G_DISPLAY_SURF.fill(BGCOLOR)
+    config.G_DISPLAY_SURF.fill(config.BGCOLOR)
 
     drawGrid()
 
     drawDotPlayer(dotPlayer.position)
     drawNpcPlayer(dotNpc.position)
 
-    drawStatus(dotPlayer, BOARD_WIDTH + 10, 20, (BOARD_WIDTH + 10, 50), (BOARD_WIDTH + 150, 50))
-    drawStatus(dotNpc, BOARD_WIDTH + 10, BOARD_HEIGHT//2, (BOARD_WIDTH + 10, BOARD_HEIGHT//2 + 30), (BOARD_WIDTH + 150, BOARD_HEIGHT//2 + 30))
+    drawStatus(dotPlayer, config.BOARD_WIDTH + 10, 20,
+               (config.BOARD_WIDTH + 10, 50),
+               (config.BOARD_WIDTH + 150, 50))
+    drawStatus(dotNpc, config.BOARD_WIDTH + 10, config.BOARD_HEIGHT//2,
+               (config.BOARD_WIDTH + 10, config.BOARD_HEIGHT//2 + 30),
+               (config.BOARD_WIDTH + 150, config.BOARD_HEIGHT//2 + 30))
 
     drawOptions()
 
@@ -224,7 +229,7 @@ def doDotTurn(player, npc, dotDirection, dotTurn, dotAtkType):
             dotPlaying.actionPoints -= costAtk
         else:
             print("\t{} couldn't attack: low action points.".format(dotPlaying.name))
-            return TURN_ATK_FAIL, False
+            return config.TURN_ATK_FAIL, False
 
         # actualize window to show attack (need this here because we need to draw attack)
         drawGameWindow(player, npc)
@@ -242,7 +247,7 @@ def doDotTurn(player, npc, dotDirection, dotTurn, dotAtkType):
 
             if dotWaiting.vitalityPoints <= 0:
                 print("\t{} fucking killed {}, man. Well done, well done.".format(dotPlaying.name, dotWaiting.name))
-                return TURN_ATK_KILLA, True
+                return config.TURN_ATK_KILLA, True
 
         else:
             print("\t{} attacked {}ly {} but missed.".
@@ -254,7 +259,7 @@ def doDotTurn(player, npc, dotDirection, dotTurn, dotAtkType):
 
         if not dotPlaying.movementPoints:  # if mp is 0, dot can't move
             print("\t{} couldn't move: low movement points.".format(dotPlaying.name))
-            return TURN_MOVE_FAIL_MP, False
+            return config.TURN_MOVE_FAIL_MP, False
 
         moveResult = dotMove(dotDirection, dotPlaying.position)  # only false at first game start (and if not atk, will move)
 
@@ -266,27 +271,27 @@ def doDotTurn(player, npc, dotDirection, dotTurn, dotAtkType):
             print("\t\t... its movement points goes to {}.".format(dotPlaying.movementPoints))
         else:
             print("\t{}: movement to off the board is invalid. Try again.".format(dotPlaying.name))
-            return TURN_MOVE_FAIL_OB, False
+            return config.TURN_MOVE_FAIL_OB, False
     else:
         print("\t{} stays at ({}, {}).".format(dotPlaying.name, dotPlaying.position['x'], dotPlaying.position['y']))
 
-    return TURN_OK, True
+    return config.TURN_OK, True
 
 
 def getRandomDirection():
-    directions = [UP, DOWN, LEFT, RIGHT]
+    directions = [config.UP, config.DOWN, config.LEFT, config.RIGHT]
     return random.choice(directions)
 
 
 def dotMove(direction, dotPosition):
 
-    if direction == UP:
+    if direction == config.UP:
         dotPosition['y'] -= 1
-    elif direction == DOWN:
+    elif direction == config.DOWN:
         dotPosition['y'] += 1
-    elif direction == LEFT:
+    elif direction == config.LEFT:
         dotPosition['x'] -= 1
-    elif direction == RIGHT:
+    elif direction == config.RIGHT:
         dotPosition['x'] += 1
 
     # if try to move pass edges, stay at the actual cell
@@ -296,53 +301,53 @@ def dotMove(direction, dotPosition):
     elif dotPosition['y'] == -1:
         dotPosition['y'] = 0
         return False
-    elif dotPosition['x'] == CELL_WIDTH:
-        dotPosition['x'] = CELL_WIDTH - 1
+    elif dotPosition['x'] == config.CELL_WIDTH:
+        dotPosition['x'] = config.CELL_WIDTH - 1
         return False
-    elif dotPosition['y'] == CELL_HEIGHT:
-        dotPosition['y'] = CELL_HEIGHT - 1
+    elif dotPosition['y'] == config.CELL_HEIGHT:
+        dotPosition['y'] = config.CELL_HEIGHT - 1
         return False
 
     return True
 
 
 def drawPressKeyMsg():
-    pressKeySurf = G_BASIC_FONT.render('Press a key to play.', True, DARKGRAY)
+    pressKeySurf = config.G_BASIC_FONT.render('Press a key to play.', True, config.DARKGRAY)
     pressKeyRect = pressKeySurf.get_rect()
-    pressKeyRect.topleft = (BOARD_WIDTH - 200, BOARD_HEIGHT - 30)
-    G_DISPLAY_SURF.blit(pressKeySurf, pressKeyRect)
+    pressKeyRect.topleft = (config.BOARD_WIDTH - 200, config.BOARD_HEIGHT - 30)
+    config.G_DISPLAY_SURF.blit(pressKeySurf, pressKeyRect)
 
 
 def checkForKeyPress():
-    if len(pygame.event.get(QUIT)) > 0:
+    if len(pygame.event.get(pl.QUIT)) > 0:
         terminate()
 
-    keyUpEvents = pygame.event.get(KEYUP)
+    keyUpEvents = pygame.event.get(pl.KEYUP)
     if len(keyUpEvents) == 0:
         return None
-    if keyUpEvents[0].key == K_ESCAPE:
+    if keyUpEvents[0].key == pl.K_ESCAPE:
         terminate()
     return keyUpEvents[0].key
 
 
 def drawStartScreen():
     titleFont = pygame.font.Font('freesansbold.ttf', 100)
-    titleSurf1 = titleFont.render('DotAtk!!', True, WHITE, DARKGREEN)
-    titleSurf2 = titleFont.render('DotAtk!!', True, GREEN)
+    titleSurf1 = titleFont.render('DotAtk!!', True, config.WHITE, config.DARKGREEN)
+    titleSurf2 = titleFont.render('DotAtk!!', True, config.GREEN)
 
     degrees1 = 0
     degrees2 = 0
     while True:
-        G_DISPLAY_SURF.fill(BGCOLOR)
+        config.G_DISPLAY_SURF.fill(config.BGCOLOR)
         rotatedSurf1 = pygame.transform.rotate(titleSurf1, degrees1)
         rotatedRect1 = rotatedSurf1.get_rect()
-        rotatedRect1.center = (BOARD_WIDTH / 2, BOARD_HEIGHT / 2)
-        G_DISPLAY_SURF.blit(rotatedSurf1, rotatedRect1)
+        rotatedRect1.center = (config.BOARD_WIDTH / 2, config.BOARD_HEIGHT / 2)
+        config.G_DISPLAY_SURF.blit(rotatedSurf1, rotatedRect1)
 
         rotatedSurf2 = pygame.transform.rotate(titleSurf2, degrees2)
         rotatedRect2 = rotatedSurf2.get_rect()
-        rotatedRect2.center = (BOARD_WIDTH / 2, BOARD_HEIGHT / 2)
-        G_DISPLAY_SURF.blit(rotatedSurf2, rotatedRect2)
+        rotatedRect2.center = (config.BOARD_WIDTH / 2, config.BOARD_HEIGHT / 2)
+        config.G_DISPLAY_SURF.blit(rotatedSurf2, rotatedRect2)
 
         drawPressKeyMsg()
 
@@ -350,7 +355,7 @@ def drawStartScreen():
             pygame.event.get() # clear event queue
             return
         pygame.display.update()
-        G_FPS_CLOCK.tick(FPS)
+        config.G_FPS_CLOCK.tick(config.FPS)
         degrees1 += 3 # rotate by 3 degrees each frame
         degrees2 += 7 # rotate by 7 degrees each frame
 
@@ -362,16 +367,16 @@ def terminate():
 
 def getRandomLocation(xby=False, ybx=False):
 
-    x = random.randint(0, CELL_WIDTH - 1)
-    y = random.randint(0, CELL_HEIGHT - 1)
+    x = random.randint(0, config.CELL_WIDTH - 1)
+    y = random.randint(0, config.CELL_HEIGHT - 1)
 
     if xby:
-        x = random.randint(0, CELL_WIDTH - 1)
-        y = random.randint(x, CELL_HEIGHT - 1)
+        x = random.randint(0, config.CELL_WIDTH - 1)
+        y = random.randint(x, config.CELL_HEIGHT - 1)
 
     if ybx:
-        y = random.randint(0, CELL_HEIGHT - 1)
-        x = random.randint(y, CELL_WIDTH - 1)
+        y = random.randint(0, config.CELL_HEIGHT - 1)
+        x = random.randint(y, config.CELL_WIDTH - 1)
 
     return {'x' : x, 'y': y}
 
@@ -381,15 +386,15 @@ def drawGameOverScreen():
     print('GAME OVER, FRIEND.')
 
     gameOverFont = pygame.font.Font('freesansbold.ttf', 150)
-    gameSurf = gameOverFont.render('Game', True, WHITE)
-    overSurf = gameOverFont.render('Over', True, WHITE)
+    gameSurf = gameOverFont.render('Game', True, config.WHITE)
+    overSurf = gameOverFont.render('Over', True, config.WHITE)
     gameRect = gameSurf.get_rect()
     overRect = overSurf.get_rect()
-    gameRect.midtop = (BOARD_WIDTH / 2, 10)
-    overRect.midtop = (BOARD_WIDTH / 2, gameRect.height + 10 + 25)
+    gameRect.midtop = (config.BOARD_WIDTH / 2, 10)
+    overRect.midtop = (config.BOARD_WIDTH / 2, gameRect.height + 10 + 25)
 
-    G_DISPLAY_SURF.blit(gameSurf, gameRect)
-    G_DISPLAY_SURF.blit(overSurf, overRect)
+    config.G_DISPLAY_SURF.blit(gameSurf, gameRect)
+    config.G_DISPLAY_SURF.blit(overSurf, overRect)
     drawPressKeyMsg()
     pygame.display.update()
     pygame.time.wait(5)
@@ -414,72 +419,71 @@ def drawStatus(player, namePosx, namePosy, lineStart, lineEnd):
     playerName = "Player {}"
 
     # title info text
-    surf, rect = makeText(G_BASIC_FONT, playerName.format(player.name), TEXTCOLOR, None, namePosx, namePosy)
-    G_DISPLAY_SURF.blit(surf, rect)
+    surf, rect = makeText(config.G_BASIC_FONT, playerName.format(player.name), config.TEXTCOLOR, None, namePosx, namePosy)
+    config.G_DISPLAY_SURF.blit(surf, rect)
 
     # add separator
-    pygame.draw.line(G_DISPLAY_SURF, DARKGRAY, lineStart, lineEnd)
+    pygame.draw.line(config.G_DISPLAY_SURF, config.DARKGRAY, lineStart, lineEnd)
 
     # add attributes (vp, ap, mp, atks, ...)
 
     gapFromNamePosx = 10
 
     # ap
-    vpSurf, vpRect = makeText(G_STATUS_FONT,
+    vpSurf, vpRect = makeText(config.G_STATUS_FONT,
                               'Vitality points: {}'.format(player.vitalityPoints),
-                              TEXTCOLOR,
+                              config.TEXTCOLOR,
                               None,
                               namePosx + gapFromNamePosx,
                               namePosy + 55)
 
     # ap
-    apSurf, apRect = makeText(G_STATUS_FONT,
+    apSurf, apRect = makeText(config.G_STATUS_FONT,
                               'Action points: {}'.format(player.actionPoints),
-                              TEXTCOLOR,
+                              config.TEXTCOLOR,
                               None,
                               namePosx + gapFromNamePosx,
                               namePosy + 55 + 15)
 
     # mp
-    mpSurf, mpRect = makeText(G_STATUS_FONT,
+    mpSurf, mpRect = makeText(config.G_STATUS_FONT,
                               'Movement points: {}'.format(player.movementPoints),
-                              TEXTCOLOR,
+                              config.TEXTCOLOR,
                               None,
                               namePosx + gapFromNamePosx,
                               namePosy + 55 + 30)
 
 
-    atkHorSurf, atkHorRect = makeText(G_STATUS_FONT,
+    atkHorSurf, atkHorRect = makeText(config.G_STATUS_FONT,
                                       'Horizontal attack: takes {} VPs in any dot at the range {}.'.
                                       format(player.atkTypes['horizontal'][0], player.atkTypes['horizontal'][1]),
-                                      TEXTCOLOR,
+                                      config.TEXTCOLOR,
                                       None,
                                       namePosx + gapFromNamePosx,
                                       namePosy + 55 + 45)
 
-    atkVerSurf, atkVerRect = makeText(G_STATUS_FONT,
+    atkVerSurf, atkVerRect = makeText(config.G_STATUS_FONT,
                                       'Vertical attack: takes {} VPs in any dot at the range {}.'.
                                       format(player.atkTypes['vertical'][0], player.atkTypes['vertical'][1]),
-                                      TEXTCOLOR,
+                                      config.TEXTCOLOR,
                                       None,
                                       namePosx + gapFromNamePosx,
                                       namePosy + 55 + 60)
 
-    G_DISPLAY_SURF.blit(vpSurf, vpRect)
-    G_DISPLAY_SURF.blit(apSurf, apRect)
-    G_DISPLAY_SURF.blit(mpSurf, mpRect)
-    G_DISPLAY_SURF.blit(atkHorSurf, atkHorRect)
-    G_DISPLAY_SURF.blit(atkVerSurf, atkVerRect)
-
+    config.G_DISPLAY_SURF.blit(vpSurf, vpRect)
+    config.G_DISPLAY_SURF.blit(apSurf, apRect)
+    config.G_DISPLAY_SURF.blit(mpSurf, mpRect)
+    config.G_DISPLAY_SURF.blit(atkHorSurf, atkHorRect)
+    config.G_DISPLAY_SURF.blit(atkVerSurf, atkVerRect)
 
 
 def drawOptions():
     # separators at horizontal and vertical right beside and alongside last board point
-    pygame.draw.line(G_DISPLAY_SURF, DARKGRAY, (BOARD_WIDTH, BOARD_HEIGHT), (WINDOW_WIDTH, BOARD_HEIGHT))
-    pygame.draw.line(G_DISPLAY_SURF, DARKGRAY, (BOARD_WIDTH, BOARD_HEIGHT), (BOARD_WIDTH, WINDOW_HEIGHT))
+    pygame.draw.line(config.G_DISPLAY_SURF, config.DARKGRAY, (config.BOARD_WIDTH, config.BOARD_HEIGHT), (config.WINDOW_WIDTH, config.BOARD_HEIGHT))
+    pygame.draw.line(config.G_DISPLAY_SURF, config.DARKGRAY, (config.BOARD_WIDTH, config.BOARD_HEIGHT), (config.BOARD_WIDTH, config.WINDOW_HEIGHT))
 
-    G_DISPLAY_SURF.blit(G_RESET_SURF, G_RESET_RECT)
-    G_DISPLAY_SURF.blit(G_QUIT_SURF, G_QUIT_RECT)
+    config.G_DISPLAY_SURF.blit(config.G_RESET_SURF, config.G_RESET_RECT)
+    config.G_DISPLAY_SURF.blit(config.G_QUIT_SURF, config.G_QUIT_RECT)
 
 
 def drawAttack(dotPlayingCoords, atkType, atkRange):
@@ -490,7 +494,7 @@ def drawAttack(dotPlayingCoords, atkType, atkRange):
     atkCoords = []
     if atkType == 'horizontal':
         for i in range(atkRange):
-            if dotPosx + i + 1 < CELL_WIDTH:
+            if dotPosx + i + 1 < config.CELL_WIDTH:
                 newCellAtRight = {'x' : dotPosx + i + 1, 'y': dotPosy }
                 atkCoords.append(newCellAtRight)
             if dotPosx - i - 1 >= 0:
@@ -501,40 +505,40 @@ def drawAttack(dotPlayingCoords, atkType, atkRange):
             if dotPosy - i - 1 >= 0:
                 newCellAbove = {'x': dotPosx, 'y' : dotPosy - i - 1 }
                 atkCoords.append(newCellAbove)
-            if dotPosy + i + 1 < CELL_HEIGHT:
+            if dotPosy + i + 1 < config.CELL_HEIGHT:
                 newCellBelow = {'x': dotPosx, 'y' : dotPosy + i + 1 }
                 atkCoords.insert(0, newCellBelow)
 
     for coord in atkCoords:
-        x = coord['x'] * CELL_SIZE
-        y = coord['y'] * CELL_SIZE
-        dotSegmentRect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
-        pygame.draw.rect(G_DISPLAY_SURF, DARKBLUE, dotSegmentRect)
-        dotInnerSegmentRect = pygame.Rect(x + 4, y + 4, CELL_SIZE - 8, CELL_SIZE - 8)
-        pygame.draw.rect(G_DISPLAY_SURF, BLUE, dotInnerSegmentRect)
+        x = coord['x'] * config.CELL_SIZE
+        y = coord['y'] * config.CELL_SIZE
+        dotSegmentRect = pygame.Rect(x, y, config.CELL_SIZE, config.CELL_SIZE)
+        pygame.draw.rect(config.G_DISPLAY_SURF, config.DARKBLUE, dotSegmentRect)
+        dotInnerSegmentRect = pygame.Rect(x + 4, y + 4, config.CELL_SIZE - 8, config.CELL_SIZE - 8)
+        pygame.draw.rect(config.G_DISPLAY_SURF, config.BLUE, dotInnerSegmentRect)
 
 
 def drawDotPlayer(playerCoords):
-    x = playerCoords['x'] * CELL_SIZE
-    y = playerCoords['y'] * CELL_SIZE
-    dotSegmentRect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
-    pygame.draw.rect(G_DISPLAY_SURF, DARKGREEN, dotSegmentRect)
-    dotInnerSegmentRect = pygame.Rect(x + 4, y + 4, CELL_SIZE - 8, CELL_SIZE - 8)
-    pygame.draw.rect(G_DISPLAY_SURF, GREEN, dotInnerSegmentRect)
+    x = playerCoords['x'] * config.CELL_SIZE
+    y = playerCoords['y'] * config.CELL_SIZE
+    dotSegmentRect = pygame.Rect(x, y, config.CELL_SIZE, config.CELL_SIZE)
+    pygame.draw.rect(config.G_DISPLAY_SURF, config.DARKGREEN, dotSegmentRect)
+    dotInnerSegmentRect = pygame.Rect(x + 4, y + 4, config.CELL_SIZE - 8, config.CELL_SIZE - 8)
+    pygame.draw.rect(config.G_DISPLAY_SURF, config.GREEN, dotInnerSegmentRect)
 
 
 def drawNpcPlayer(npcCoords):
-    x = npcCoords['x'] * CELL_SIZE
-    y = npcCoords['y'] * CELL_SIZE
-    npcRect = pygame.Rect(x, y, CELL_SIZE, CELL_SIZE)
-    pygame.draw.rect(G_DISPLAY_SURF, RED, npcRect)
+    x = npcCoords['x'] * config.CELL_SIZE
+    y = npcCoords['y'] * config.CELL_SIZE
+    npcRect = pygame.Rect(x, y, config.CELL_SIZE, config.CELL_SIZE)
+    pygame.draw.rect(config.G_DISPLAY_SURF, config.RED, npcRect)
 
 
 def drawGrid():
-    for x in range(0, BOARD_WIDTH + 1, CELL_SIZE): # draw vertical lines
-        pygame.draw.line(G_DISPLAY_SURF, DARKGRAY, (x, 0), (x, BOARD_HEIGHT))
-    for y in range(0, BOARD_HEIGHT + 1, CELL_SIZE): # draw horizontal lines
-        pygame.draw.line(G_DISPLAY_SURF, DARKGRAY, (0, y), (BOARD_WIDTH, y))
+    for x in range(0, config.BOARD_WIDTH + 1, config.CELL_SIZE): # draw vertical lines
+        pygame.draw.line(config.G_DISPLAY_SURF, config.DARKGRAY, (x, 0), (x, config.BOARD_HEIGHT))
+    for y in range(0, config.BOARD_HEIGHT + 1, config.CELL_SIZE): # draw horizontal lines
+        pygame.draw.line(config.G_DISPLAY_SURF, config.DARKGRAY, (0, y), (config.BOARD_WIDTH, y))
 
 
 if __name__ == '__main__':
