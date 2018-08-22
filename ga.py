@@ -79,9 +79,12 @@ def npcGaActions(dotPlayer, dotNpc):
 
 
     """
-    dotDirection = None  # UP, DOWN, RIGHT, LEFT (see pygame.locals)
-    dotAtkType = None    # vertical or horizontal
-    dotTurnOver = False  # simple flag indiciate if npc will pass turn
+
+    # Before find a new coordinate to go, see first if npc can attack.
+    dotCanAtk, _ = isAttackPossible(dotPlayer, dotNpc)
+
+    if dotCanAtk:
+        return [None]
 
     epoch = 0
     dotDirectionList = []
@@ -89,11 +92,13 @@ def npcGaActions(dotPlayer, dotNpc):
 
     progressOfIndividuals = []
 
-    while epoch <= EPOCH_LIMIT:
+    optimalFound = False
+
+    while epoch <= EPOCH_LIMIT and not optimalFound:
         epoch += 1
         # npcNewCoords is dict like Player position attribute
 
-        fitness, npcNewCoords, population = findNewCoords(dotPlayer, dotNpc, population)
+        optimalFound, fitness, npcNewCoords, population = findNewCoords(dotPlayer, dotNpc, population)
 
         progressOfIndividuals.append((epoch, fitness, npcNewCoords, len(population)))
 
@@ -102,7 +107,6 @@ def npcGaActions(dotPlayer, dotNpc):
         # But for now we don't. Just return a list with directions. A list as stack, remember. First moves at the top.
         dotDirectionList = transformCoordsToMoveDirections(dotNpc.position, npcNewCoords)
 
-    print(progressOfIndividuals)
 
     return dotDirectionList
 
@@ -165,7 +169,7 @@ def findNewCoords(dotPlayer, dotNpc, population):
     retCheck, (fitness, individual) = checkForOptimalIndividual(population[:len(population)//2], dotPlayer, dotNpc)
 
     if retCheck:
-        return fitness, individual, onlyCoordinates(population)
+        return retCheck, fitness, individual, onlyCoordinates(population)
 
     # Now population is a list of individuals only
     population = performCrossover(population[:len(population)//2])
@@ -186,7 +190,7 @@ def findNewCoords(dotPlayer, dotNpc, population):
 
     bestForThisEpochFitness, bestForThisEpochCoords  = population[0]
 
-    return  bestForThisEpochFitness, bestForThisEpochCoords, population
+    return retCheck, bestForThisEpochFitness, bestForThisEpochCoords, population
     # first individual, its coords; population
 
 

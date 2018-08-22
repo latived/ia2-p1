@@ -51,7 +51,6 @@ def runGame():
     showedTurnCounter = False
 
     npcGaControlled = True  # tell if we have random actions or ga controlled actions
-    npcMoveDirectionsFound = False
 
     while True: # main game loop
         # direction = getRandomDirection()
@@ -112,6 +111,9 @@ def runGame():
                         dotNpc.futureMoves = ga.npcGaActions(dotPlayer, dotNpc)
                         dotDirection = dotNpc.futureMoves.pop()
                         dotCanAtk = False
+                        if dotDirection == None:
+                            dotCanAtk, dotAtkType = ga.isAttackPossible(dotPlayer, dotNpc)
+                            dotTurnOver = True
                     else:
                         # dotCantAtk is True always, here.
                         if len(dotNpc.futureMoves) == 0:
@@ -166,7 +168,7 @@ def runGame():
 
                 # Right place to these
                 dotCanMove = True
-                dotCanAtk = True
+                dotCanAtk = True  # for player
 
                 dotPlayer.regenerateMP()
                 dotPlayer.regenerateAP()
