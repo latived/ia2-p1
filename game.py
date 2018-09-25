@@ -36,12 +36,14 @@ def main():
 
 def runGame():
 
+    # Setting up player and NPC
     ATK_PLAYER = {'horizontal': (10, 10, 5), 'vertical': (5, 5, 5) }  # atk : (range_space, range_damage, range_cost)
     ATK_NPC = {'horizontal': (5, 5, 5), 'vertical': (10, 10, 5) }  # atk : (range_space, range_damage, range_cost)
 
     dotPlayer = Player('latived', getRandomLocation(xby=True), ATK_PLAYER)
     dotNpc = Player('npc_01', getRandomLocation(ybx=True), ATK_NPC)
 
+    # Setting up some control variables
     gameStarted = False  # inhibit necessity for one move before the game starts
 
     dotTurn = True  # control if dot or npc can move (true if player, false if npc)
