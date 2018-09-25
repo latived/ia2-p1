@@ -46,17 +46,19 @@ def runGame():
     # Setting up some control variables
     gameStarted = False  # inhibit necessity for one move before the game starts
 
-    dotTurn = True  # control if dot or npc can move (true if player, false if npc)
-    dotCanAtk = True  # just initializing
-    dotCanMove = True
-    turnCounter = 1
-    showedTurnCounter = False
+    dotTurn = True  # controls if player or npc can move (true if player, false if npc)
+    dotCanAtk = True  # controls possibility of attack
+    dotCanMove = True  # controls possibility of movement
+    turnCounter = 1  # initialize counter
+    showedTurnCounter = False  # controls if turn log can be show (actualized)
 
-    npcGaControlled = True  # tell if we have random actions or ga controlled actions
+    npcGaControlled = True  # set up random actions or ga controlled actions
 
     while True: # main game loop
         # direction = getRandomDirection()
-        dotDirection = None  # inhibit continuous movement
+
+        # At the begin of every turn, we set up flags to control direction, attack type and turn over
+        dotDirection = None
         dotAtkType = None
         dotTurnOver = False
 
@@ -66,7 +68,7 @@ def runGame():
         #        if QUIT_RECT.collidepoint(event.pos):
         #            terminate()
 
-        # if game started and is player turn, wait event (move or attack or pass over the turn)
+        # If game started and is player turn, wait event (move or attack or pass over the turn)
         while (gameStarted and dotTurn) and not dotDirection and not dotAtkType and not dotTurnOver:
             for event in pygame.event.get(): # event handling loop
                 if event.type == pl.MOUSEBUTTONUP:
@@ -97,49 +99,65 @@ def runGame():
                     elif event.key == pl.K_ESCAPE:
                         terminate()
 
-        # TODO: put these print below in a log section at game window
+        # Only false once at the begin of the game
         if gameStarted:
+            # Checks if has showed counter previously
             if not showedTurnCounter:
                 print("Turn {}".format(turnCounter))
                 print("\t* {} points: {} VP, {} AP, {} MP.".format(dotPlayer.name, dotPlayer.vitalityPoints, dotPlayer.actionPoints, dotPlayer.movementPoints))
                 print("\t* {} points: {} VP, {} AP, {} MP.".format(dotNpc.name, dotNpc.vitalityPoints, dotNpc.actionPoints, dotNpc.movementPoints))
                 showedTurnCounter = True
 
+            # Checks for who is playing
             if not dotTurn:
-                if npcGaControlled:
 
-                    # set next direction move
+                if npcGaControlled:
+                    # futureMoves is set to [] at players set up
+                    # Therefore, the first time the code gets here it will evaluate to True (dotCanMove = True too)
                     if len(dotNpc.futureMoves) == 0 and dotCanMove:
+                        # npcGaActions returns a list of directions to move
+                        # Or [None] in case the NPC can attack without movement
                         dotNpc.futureMoves = ga.npcGaActions(dotPlayer, dotNpc)
                         dotDirection = dotNpc.futureMoves.pop()
+                        # Because we have here a "moving phase", the NPC won't attack until move to the last direction
                         dotCanAtk = False
+                        # In case NPC can attack w/o movement
                         if dotDirection == None:
+                            # isAttackPossible defines possibility of attack and its type
+                            # It is obvious that here dotCanAtk will always be True
                             dotCanAtk, dotAtkType = ga.isAttackPossible(dotPlayer, dotNpc)
+                            # After NPC performs an attack, it will pass the turn over
                             dotTurnOver = True
                     else:
-                        # dotCantAtk is True always, here.
+                        # Checks if has any move left to make
                         if len(dotNpc.futureMoves) == 0:
+                            # If the position where the NPC is has a possibility of attack
+                            # And has enough action points, of course (see inside isAttackPossible)
+                            # It will perform an attack
                             dotCanAtk, dotAtkType = ga.isAttackPossible(dotPlayer, dotNpc)
                             dotCanMove = False  # we assume we are in attack position here
-                            # if dotCanAtk is false, it means that npc is with low action points
-                            # if dotAtkType is None, it means that npc is not in line with player
+                            # if dotCanAtk = 0 and dotAtkType = None, then npc is not in line
+                            # if dotCanAtk = 0 and dotAtkType != None, the npc is short of action points
+                            # FIXME: these conditionals are ugly
                             if dotCanAtk == False:
                                 dotTurnOver = True
                             elif dotCanAtk:
                                 dotTurnOver = True
 
+                        # If it has, pop it
                         else:
                             dotDirection = dotNpc.futureMoves.pop()
                 else:
                     dotDirection, dotAtkType, dotTurnOver = npcRandomActions(dotNpc.atkTypes)
 
 
-            if not dotCanMove:
+            if not dotCanMove:  # if cannot move, doesn't matter if he wants
                 dotDirection = None
 
             if not dotCanAtk:  # if cannot atk, doesn't matter if he wants
                 dotAtkType = None
 
+            # Get turn results
             turnResult, turnFlag = doDotTurn(dotPlayer, dotNpc, dotDirection, dotTurn, dotAtkType)
 
             if not turnFlag:
@@ -151,27 +169,29 @@ def runGame():
                 elif turnResult == config.TURN_ATK_FAIL:
                     # force player/npc to move or pass turn
                     dotCanAtk = False
-
+                # Because the attack was unsuccessful (move or attack failed), start turn again
+                # Note that we restart the turn but with the same flags recently modified
                 continue
             else:
                 if turnResult == config.TURN_ATK_KILLA:  # Game is over, okay?
                     return #
 
-            # change turn
+            # Change turn
             if dotTurnOver:
                 if dotTurn:
                     print("\t{} passes the turn over to {}.".format(dotPlayer.name, dotNpc.name))
                 else:
                     print("\t{} passes the turn over to {}.".format(dotNpc.name, dotPlayer.name))
 
-                turnCounter += 1
-                showedTurnCounter = False
-                dotTurn = not dotTurn
+                turnCounter += 1  # Increment counter
+                showedTurnCounter = False  # Last log message wasn't counter
+                dotTurn = not dotTurn  # Changes turn flag
 
-                # Right place to these
+                # New turn, anyone can move/atk
                 dotCanMove = True
-                dotCanAtk = True  # for player
+                dotCanAtk = True
 
+                # Regenerate status
                 dotPlayer.regenerateMP()
                 dotPlayer.regenerateAP()
                 dotNpc.regenerateMP()
