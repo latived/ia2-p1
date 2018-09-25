@@ -1,5 +1,6 @@
 # custom by lativ
 makinggames/
+.idea
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
