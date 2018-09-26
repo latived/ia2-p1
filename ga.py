@@ -80,12 +80,6 @@ def npcGaActions(dotPlayer, dotNpc):
 
     """
 
-    # Before find a new coordinate to go, see first if npc can attack.
-    dotCanAtk, _ = isAttackPossible(dotPlayer, dotNpc)
-
-    if dotCanAtk:
-        return [None]
-
     epoch = 0
     dotDirectionList = []
     population = []
@@ -325,4 +319,3 @@ def isAttackPossible(dotPlayer, dotNpc):
     # npc can atk but have low action points if atkType != None
 
     return canAtk, atkType
-
