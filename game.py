@@ -74,20 +74,18 @@ def runGame():
                     # futureMoves is set to [] at players set up
                     # Therefore, the first time the code gets here it will evaluate to True (dotCanMove = True too)
                     if len(dotNpc.futureMoves) == 0 and dotCanMove:
-                        # npcGaActions returns a list of directions to move
+                        # isAttackPossible defines possibility of attack and its type
                         dotCanAtk, dotAtkType = ga.isAttackPossible(dotPlayer, dotNpc)
 
                         if dotCanAtk:
-                            # isAttackPossible defines possibility of attack and its type
-                            # It is obvious that here dotCanAtk will always be True
                             # After NPC performs an attack, it will pass the turn over
                             dotTurnOver = True
                         else:
+                            # npcGaActions returns a list of directions to move
                             dotNpc.futureMoves = ga.npcGaActions(dotPlayer, dotNpc)
                             dotDirection = dotNpc.futureMoves.pop()
                             # Because we have here a "moving phase", the NPC won't attack until move to the last direction
                             dotCanAtk = False
-                            # In case NPC can attack w/o movement
                     else:
                         # Checks if has any move left to make
                         if len(dotNpc.futureMoves) == 0:
