@@ -69,45 +69,22 @@ def runGame():
 
             # Checks for who is playing
             if not dotTurn:
-
                 if npcGaControlled:
                     # futureMoves is set to [] at players set up
-                    # Therefore, the first time the code gets here it will evaluate to True (dotCanMove = True too)
-                    if len(dotNpc.futureMoves) == 0 and dotCanMove:
-                        # isAttackPossible defines possibility of attack and its type
+                    if len(dotNpc.futureMoves) == 0:
                         dotCanAtk, dotAtkType = ga.isAttackPossible(dotPlayer, dotNpc)
+                        dotTurnOver = True
 
-                        if dotCanAtk:
-                            # After NPC performs an attack, it will pass the turn over
-                            dotTurnOver = True
-                        else:
+                        # If we want to move after attack, just delete 'and not dotCanAtk' term
+                        if dotCanMove and not dotCanAtk:
                             # npcGaActions returns a list of directions to move
                             dotNpc.futureMoves = ga.npcGaActions(dotPlayer, dotNpc)
                             dotDirection = dotNpc.futureMoves.pop()
-                            # Because we have here a "moving phase", the NPC won't attack until move to the last direction
-                            dotCanAtk = False
+                            dotTurnOver = False
                     else:
-                        # Checks if has any move left to make
-                        if len(dotNpc.futureMoves) == 0:
-                            # If the position where the NPC is has a possibility of attack
-                            # And has enough action points, of course (see inside isAttackPossible)
-                            # It will perform an attack
-                            dotCanAtk, dotAtkType = ga.isAttackPossible(dotPlayer, dotNpc)
-                            dotCanMove = False  # we assume we are in attack position here
-                            # if dotCanAtk = 0 and dotAtkType = None, then npc is not in line
-                            # if dotCanAtk = 0 and dotAtkType != None, the npc is short of action points
-                            # FIXME: these conditionals are ugly
-                            if dotCanAtk == False:
-                                dotTurnOver = True
-                            elif dotCanAtk:
-                                dotTurnOver = True
-
-                        # If it has, pop it
-                        else:
-                            dotDirection = dotNpc.futureMoves.pop()
+                        dotDirection = dotNpc.futureMoves.pop()
                 else:
                     dotDirection, dotAtkType, dotTurnOver = npcRandomActions(dotNpc.atkTypes)
-
 
             if not dotCanMove:  # if cannot move, doesn't matter if he wants
                 dotDirection = None
