@@ -68,36 +68,10 @@ def runGame():
         #        if QUIT_RECT.collidepoint(event.pos):
         #            terminate()
 
-        # If game started and is player turn, wait event (move or attack or pass over the turn)
-        while (gameStarted and dotTurn) and not dotDirection and not dotAtkType and not dotTurnOver:
-            for event in pygame.event.get(): # event handling loop
-                if event.type == pl.MOUSEBUTTONUP:
-                    if config.G_QUIT_RECT.collidepoint(event.pos):
-                        terminate()
-                    elif config.G_RESET_RECT.collidepoint(event.pos):
-                        return
-                elif event.type == pl.QUIT:
-                    terminate()
-                elif event.type == pl.KEYDOWN:
-                    # check for pass over turn
-                    if (event.key == pl.K_p):
-                        dotTurnOver = True
-                    # check for attack
-                    elif (event.key == pl.K_h):
-                        dotAtkType = 'horizontal'
-                    elif (event.key == pl.K_v):
-                        dotAtkType = 'vertical'
-                    # check for movement
-                    elif (event.key == pl.K_LEFT or event.key == pl.K_a):
-                        dotDirection = config.LEFT
-                    elif (event.key == pl.K_RIGHT or event.key == pl.K_d):
-                        dotDirection = config.RIGHT
-                    elif (event.key == pl.K_UP or event.key == pl.K_w):
-                        dotDirection = config.UP
-                    elif (event.key == pl.K_DOWN or event.key == pl.K_s):
-                        dotDirection = config.DOWN
-                    elif event.key == pl.K_ESCAPE:
-                        terminate()
+        ret, dotDirection, dotAtkType, dotTurnOver = getPlayerAction(gameStarted, dotTurn)
+
+        if ret:
+            return #
 
         # Only false once at the begin of the game
         if gameStarted:
@@ -312,6 +286,41 @@ def doDotTurn(player, npc, dotDirection, dotTurn, dotAtkType):
         print("\t{} stays at ({}, {}).".format(dotPlaying.name, dotPlaying.position['x'], dotPlaying.position['y']))
 
     return config.TURN_OK, True
+
+
+def getPlayerAction(gameStarted, dotTurn, dotDirection=None, dotAtkType=None, dotTurnOver=False):
+    # If game started and is player turn, wait event (move or attack or pass over the turn)
+    while (gameStarted and dotTurn) and not dotDirection and not dotAtkType and not dotTurnOver:
+        for event in pygame.event.get(): # event handling loop
+            if event.type == pl.MOUSEBUTTONUP:
+                if config.G_QUIT_RECT.collidepoint(event.pos):
+                    terminate()
+                elif config.G_RESET_RECT.collidepoint(event.pos):
+                    return True, dotDirection, dotAtkType, dotTurnOver
+            elif event.type == pl.QUIT:
+                terminate()
+            elif event.type == pl.KEYDOWN:
+                # check for pass over turn
+                if (event.key == pl.K_p):
+                    dotTurnOver = True
+                # check for attack
+                elif (event.key == pl.K_h):
+                    dotAtkType = 'horizontal'
+                elif (event.key == pl.K_v):
+                    dotAtkType = 'vertical'
+                # check for movement
+                elif (event.key == pl.K_LEFT or event.key == pl.K_a):
+                    dotDirection = config.LEFT
+                elif (event.key == pl.K_RIGHT or event.key == pl.K_d):
+                    dotDirection = config.RIGHT
+                elif (event.key == pl.K_UP or event.key == pl.K_w):
+                    dotDirection = config.UP
+                elif (event.key == pl.K_DOWN or event.key == pl.K_s):
+                    dotDirection = config.DOWN
+                elif event.key == pl.K_ESCAPE:
+                    terminate()
+
+    return False, dotDirection, dotAtkType, dotTurnOver
 
 
 def getRandomDirection():
