@@ -36,6 +36,7 @@ class Player():
         higherAtksCost.sort(reverse=True)
         return sum(higherAtksCost[:2]) - 1
 
+
     def __selectAtkTypes(self, dotType):
         atk = None
 

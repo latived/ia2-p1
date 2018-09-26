@@ -52,18 +52,6 @@ def runGame():
     npcGaControlled = True  # set up random actions or ga controlled actions
 
     while True: # main game loop
-        # direction = getRandomDirection()
-
-        # At the begin of every turn, we set up flags to control direction, attack type and turn over
-        dotDirection = None
-        dotAtkType = None
-        dotTurnOver = False
-
-        # TEMP CODE JUST FOR TEST PURPOSES
-        #for event in pygame.event.get(): # event handling loop
-        #    if event.type == MOUSEBUTTONUP:
-        #        if QUIT_RECT.collidepoint(event.pos):
-        #            terminate()
 
         ret, dotDirection, dotAtkType, dotTurnOver = getPlayerAction(gameStarted, dotTurn)
 
