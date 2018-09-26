@@ -10,10 +10,10 @@ START_MP = 10   # Move points
 
 class Player():
 
-    def __init__(self, name, location, atkTypes, vitalityPoints=START_VP, movPoints=START_MP):
+    def __init__(self, name, location, dotType, vitalityPoints=START_VP, movPoints=START_MP):
         self.name = name
         self.position = location
-        self.atkTypes = atkTypes
+        self.atkTypes = self.__selectAtkTypes(dotType)
         self.vitalityPoints = vitalityPoints
         self.actionPoints = self.getMaximumAP()
         self.movementPoints = movPoints
@@ -35,3 +35,13 @@ class Player():
         higherAtksCost = [atk[2] for atk in self.atkTypes.values()]
         higherAtksCost.sort(reverse=True)
         return sum(higherAtksCost[:2]) - 1
+
+    def __selectAtkTypes(self, dotType):
+        atk = None
+
+        if dotType == 'pl1':
+            atk = {'horizontal': (10, 10, 5), 'vertical': (5, 5, 5) }  # atk : (range_space, range_damage, range_cost)
+        if dotType == 'nl1':
+            atk = {'horizontal': (5, 5, 5), 'vertical': (10, 10, 5) }  # atk : (range_space, range_damage, range_cost)
+
+        return atk
