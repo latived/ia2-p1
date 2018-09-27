@@ -41,8 +41,6 @@ def runGame():
     dotNpc = Player('npc_01', getRandomLocation(ybx=True), 'nl1')
 
     # Setting up some control variables
-    gameStarted = False  # inhibit necessity for one move before the game starts
-
     dotTurn = True  # controls if player or npc can move (true if player, false if npc)
     dotCanAtk = True  # controls possibility of attack
     dotCanMove = True  # controls possibility of movement
@@ -53,86 +51,87 @@ def runGame():
 
     while True: # main game loop
 
-        ret, dotDirection, dotAtkType, dotTurnOver = getPlayerAction(gameStarted, dotTurn)
+        if turnCounter == 1:
+            drawGameWindow(dotPlayer, dotNpc)
+            pygame.display.update()
+            config.G_FPS_CLOCK.tick(config.FPS)
+
+        ret, dotDirection, dotAtkType, dotTurnOver = getPlayerAction(dotTurn)
 
         if ret:
             return #
 
-        # Only false once at the begin of the game
-        if gameStarted:
-            # Checks if has showed counter previously
-            if not showedTurnCounter:
-                print("Turn {}".format(turnCounter))
-                print("\t* {} points: {} VP, {} AP, {} MP.".format(dotPlayer.name, dotPlayer.vitalityPoints, dotPlayer.actionPoints, dotPlayer.movementPoints))
-                print("\t* {} points: {} VP, {} AP, {} MP.".format(dotNpc.name, dotNpc.vitalityPoints, dotNpc.actionPoints, dotNpc.movementPoints))
-                showedTurnCounter = True
+        # Checks if has showed counter previously
+        if not showedTurnCounter:
+            print("Turn {}".format(turnCounter))
+            print("\t* {} points: {} VP, {} AP, {} MP.".format(dotPlayer.name, dotPlayer.vitalityPoints, dotPlayer.actionPoints, dotPlayer.movementPoints))
+            print("\t* {} points: {} VP, {} AP, {} MP.".format(dotNpc.name, dotNpc.vitalityPoints, dotNpc.actionPoints, dotNpc.movementPoints))
+            showedTurnCounter = True
 
-            # Checks for who is playing
-            if not dotTurn:
-                if npcGaControlled:
-                    # futureMoves is set to [] at players set up
-                    if len(dotNpc.futureMoves) == 0:
-                        dotCanAtk, dotAtkType = ga.isAttackPossible(dotPlayer, dotNpc)
-                        dotTurnOver = True
+        # Checks for who is playing
+        if not dotTurn:
+            if npcGaControlled:
+                # futureMoves is set to [] at players set up
+                if len(dotNpc.futureMoves) == 0:
+                    dotCanAtk, dotAtkType = ga.isAttackPossible(dotPlayer, dotNpc)
+                    dotTurnOver = True
 
-                        # If we want to move after attack, just delete 'and not dotCanAtk' term
-                        if dotCanMove and not dotCanAtk:
-                            # npcGaActions returns a list of directions to move
-                            dotNpc.futureMoves = ga.npcGaActions(dotPlayer, dotNpc)
-                            dotDirection = dotNpc.futureMoves.pop()
-                            dotTurnOver = False
-                    else:
+                    # If we want to move after attack, just delete 'and not dotCanAtk' term
+                    if dotCanMove and not dotCanAtk:
+                        # npcGaActions returns a list of directions to move
+                        dotNpc.futureMoves = ga.npcGaActions(dotPlayer, dotNpc)
                         dotDirection = dotNpc.futureMoves.pop()
+                        dotTurnOver = False
                 else:
-                    dotDirection, dotAtkType, dotTurnOver = npcRandomActions(dotNpc.atkTypes)
-
-            if not dotCanMove:  # if cannot move, doesn't matter if he wants
-                dotDirection = None
-
-            if not dotCanAtk:  # if cannot atk, doesn't matter if he wants
-                dotAtkType = None
-
-            # Get turn results
-            turnResult, turnFlag = doDotTurn(dotPlayer, dotNpc, dotDirection, dotTurn, dotAtkType)
-
-            if not turnFlag:
-                if turnResult == config.TURN_MOVE_FAIL_OB:
-                    pass
-                elif turnResult == config.TURN_MOVE_FAIL_MP:
-                    # force player/npc to atk or pass turn
-                    dotCanMove = False
-                elif turnResult == config.TURN_ATK_FAIL:
-                    # force player/npc to move or pass turn
-                    dotCanAtk = False
-                # Because the attack was unsuccessful (move or attack failed), start turn again
-                # Note that we restart the turn but with the same flags recently modified
-                continue
+                    dotDirection = dotNpc.futureMoves.pop()
             else:
-                if turnResult == config.TURN_ATK_KILLA:  # Game is over, okay?
-                    return #
+                dotDirection, dotAtkType, dotTurnOver = npcRandomActions(dotNpc.atkTypes)
 
-            # Change turn
-            if dotTurnOver:
-                if dotTurn:
-                    print("\t{} passes the turn over to {}.".format(dotPlayer.name, dotNpc.name))
-                else:
-                    print("\t{} passes the turn over to {}.".format(dotNpc.name, dotPlayer.name))
+        if not dotCanMove:  # if cannot move, doesn't matter if he wants
+            dotDirection = None
 
-                turnCounter += 1  # Increment counter
-                showedTurnCounter = False  # Last log message wasn't counter
-                dotTurn = not dotTurn  # Changes turn flag
+        if not dotCanAtk:  # if cannot atk, doesn't matter if he wants
+            dotAtkType = None
 
-                # New turn, anyone can move/atk
-                dotCanMove = True
-                dotCanAtk = True
+        # Get turn results
+        turnResult, turnFlag = doDotTurn(dotPlayer, dotNpc, dotDirection, dotTurn, dotAtkType)
 
-                # Regenerate status
-                dotPlayer.regenerateMP()
-                dotPlayer.regenerateAP()
-                dotNpc.regenerateMP()
-                dotNpc.regenerateAP()
+        if not turnFlag:
+            if turnResult == config.TURN_MOVE_FAIL_OB:
+                pass
+            elif turnResult == config.TURN_MOVE_FAIL_MP:
+                # force player/npc to atk or pass turn
+                dotCanMove = False
+            elif turnResult == config.TURN_ATK_FAIL:
+                # force player/npc to move or pass turn
+                dotCanAtk = False
+            # Because the attack was unsuccessful (move or attack failed), start turn again
+            # Note that we restart the turn but with the same flags recently modified
+            continue
+        else:
+            if turnResult == config.TURN_ATK_KILLA:  # Game is over, okay?
+                return #
 
-        gameStarted = True  # not necessary anymore after the game starts
+        # Change turn
+        if dotTurnOver:
+            if dotTurn:
+                print("\t{} passes the turn over to {}.".format(dotPlayer.name, dotNpc.name))
+            else:
+                print("\t{} passes the turn over to {}.".format(dotNpc.name, dotPlayer.name))
+
+            turnCounter += 1  # Increment counter
+            showedTurnCounter = False  # Last log message wasn't counter
+            dotTurn = not dotTurn  # Changes turn flag
+
+            # New turn, anyone can move/atk
+            dotCanMove = True
+            dotCanAtk = True
+
+            # Regenerate status
+            dotPlayer.regenerateMP()
+            dotPlayer.regenerateAP()
+            dotNpc.regenerateMP()
+            dotNpc.regenerateAP()
 
         drawGameWindow(dotPlayer, dotNpc)
         # time.sleep(1)  # wait 1 second before npc moves at window
@@ -249,9 +248,9 @@ def doDotTurn(player, npc, dotDirection, dotTurn, dotAtkType):
     return config.TURN_OK, True
 
 
-def getPlayerAction(gameStarted, dotTurn, dotDirection=None, dotAtkType=None, dotTurnOver=False):
+def getPlayerAction(dotTurn, dotDirection=None, dotAtkType=None, dotTurnOver=False):
     # If game started and is player turn, wait event (move or attack or pass over the turn)
-    while (gameStarted and dotTurn) and not dotDirection and not dotAtkType and not dotTurnOver:
+    while dotTurn and not dotDirection and not dotAtkType and not dotTurnOver:
         for event in pygame.event.get(): # event handling loop
             if event.type == pl.MOUSEBUTTONUP:
                 if config.G_QUIT_RECT.collidepoint(event.pos):
