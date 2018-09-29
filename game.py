@@ -53,8 +53,6 @@ def runGame():
 
         if turnCounter == 1:
             drawGameWindow(dotPlayer, dotNpc)
-            pygame.display.update()
-            config.G_FPS_CLOCK.tick(config.FPS)
 
         ret, dotDirection, dotAtkType, dotTurnOver = getPlayerAction(dotTurn)
 
@@ -134,12 +132,9 @@ def runGame():
             dotNpc.regenerateAP()
 
         drawGameWindow(dotPlayer, dotNpc)
-        # time.sleep(1)  # wait 1 second before npc moves at window
-        pygame.display.update()
-        config.G_FPS_CLOCK.tick(config.FPS)
 
 
-def drawGameWindow(dotPlayer, dotNpc):
+def drawGameWindow(dotPlayer, dotNpc, attacking=False, atkInfo=None):
     config.G_DISPLAY_SURF.fill(config.BGCOLOR)
 
     drawGrid()
@@ -155,6 +150,16 @@ def drawGameWindow(dotPlayer, dotNpc):
                (config.BOARD_WIDTH + 150, config.BOARD_HEIGHT//2 + 30))
 
     drawOptions()
+
+    if attacking:
+        dotAtkType, rangeAtk = atkInfo
+        drawAttack(dotPlayer.position, dotAtkType, rangeAtk)
+        pygame.display.update()
+        time.sleep(0.5)
+    else:
+        pygame.display.update()
+
+    config.G_FPS_CLOCK.tick(config.FPS)
 
 
 def dotAttack(dotPlayingCoords, dotWaitingCoords, atkType, rangeAtk):
@@ -202,10 +207,8 @@ def doDotTurn(player, npc, dotDirection, dotTurn, dotAtkType):
             return config.TURN_ATK_FAIL, False
 
         # actualize window to show attack (need this here because we need to draw attack)
-        drawGameWindow(player, npc)
-        drawAttack(dotPlaying.position, dotAtkType, rangeAtk)
-        pygame.display.update()
-        time.sleep(0.5)
+        # TODO: would exist a way to draw attack like we draw a movement? i.e., at the end of runGame
+        drawGameWindow(player, npc, attacking=True, atkInfo=[dotAtkType, rangeAtk])
 
         if hit:
             damage = dotPlaying.atkTypes[dotAtkType][1]
