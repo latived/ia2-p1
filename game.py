@@ -40,102 +40,105 @@ def runGame():
     # Setting up player and NPC
     dotPlayer = Player('latived', getRandomLocation(xby=True), 'pl1')  # Last parameter defines dotType
     dotNpc = Player('npc_01', getRandomLocation(ybx=True), 'nl1')
+    dotNpc2 = Player('npc_02', getRandomLocation(ybx=True), 'nl1')
 
-    # Setting up some control variables
-    dotTurn = True  # controls if player or npc can move (true if player, false if npc)
-    dotCanAtk = True  # controls possibility of attack
-    dotCanMove = True  # controls possibility of movement
-    turnCounter = 1  # initialize counter
-    showedTurnCounter = False  # controls if turn log can be show (actualized)
+    # TODO: define a method to do all this automatically and scale to more NPCs
+    turnControl = {'dots' :
+                       [{'dot' : dotPlayer, 'canMove' : True, 'direction' : None, 'canAtk' : True, 'atkType' : None},
+                       {'dot' : dotNpc, 'canMove' : False, 'direction' : None, 'futureMoves' : [], 'canAtk' : False, 'atkType' : None, 'actionsBy' : 'GA'},  # actionsBy can be "random" too
+                       {'dot' : dotNpc2, 'canMove' : False, 'direction' : None, 'futureMoves' : [], 'canAtk' : False, 'atkType' : None, 'actionsBy' : 'GA'},  # actionsBy can be "random" too
+                        ],
+                   'counter' :
+                       {'number' : 1, 'showed' : False},
+                   'turn' :
+                       {'dot': dotPlayer.name, 'id' : 0, 'totalDots' : 3, 'isOver' : False}
+                   }
 
-    # Who controls NPC actions?
-    npcGaControlled = True  # set up random actions or ga controlled actions
+    dots = [dot['dot'] for dot in turnControl['dots']]
+    drawGameWindow(dots=dots)
 
-    drawGameWindow(dots=[dotPlayer, dotNpc])
+    counter = turnControl['counter']
+    turn = turnControl['turn']
 
     while True: # main game loop
 
         # Checks if has showed counter previously
-        if not showedTurnCounter:
-            print("Turn {}".format(turnCounter))
-            print("\t* {} points: {} VP, {} AP, {} MP.".format(dotPlayer.name, dotPlayer.vitalityPoints, dotPlayer.actionPoints, dotPlayer.movementPoints))
-            print("\t* {} points: {} VP, {} AP, {} MP.".format(dotNpc.name, dotNpc.vitalityPoints, dotNpc.actionPoints, dotNpc.movementPoints))
-            showedTurnCounter = True
+        if not counter['showed']:
+            print("Turn {} [{} plays]".format(counter['number'], turn['dot']))
+            for dot in turnControl['dots']:
+                print("\t* {} points: {} VP, {} AP, {} MP.".format(dot['dot'].name, dot['dot'].vitalityPoints, dot['dot'].actionPoints, dot['dot'].movementPoints))
+            counter['showed'] = True
 
-        dotDirection, dotAtkType, dotTurnOver = None, None, None  # Just to remove warnings...
+        dotPlaying = None
 
-        # Checks for who is playing
-        if not dotTurn:
-            if npcGaControlled:
-                # futureMoves is set to [] at players set up
-                if len(dotNpc.futureMoves) == 0:
-                    dotCanAtk, dotAtkType = ga.isAttackPossible(dotPlayer, dotNpc)
-                    dotTurnOver = True
+        # Checks for who is playing (if 0, its player's turn)
+        if turn['id']:
+            # If we have 3 dots (one player with id 0, two npcs with ids 1 and 2)
+            dotPlaying = turnControl['dots'][turn['id']]
+            dotPlayer = turnControl['dots'][0]
+
+            if dotPlaying['actionsBy'] == 'GA':
+                if len(dotPlaying['futureMoves']) == 0:
+                    dotPlaying['canAtk'], dotPlaying['atkType'] = ga.isAttackPossible(dotPlayer['dot'], dotPlaying['dot'])
+                    turn['isOver'] = True
 
                     # If we want to move after attack, just delete 'and not dotCanAtk' term
-                    if dotCanMove and not dotCanAtk:
+                    if dotPlaying['canMove'] and not dotPlaying['canAtk']:
                         # npcGaActions returns a list of directions to move
-                        dotNpc.futureMoves = ga.npcGaActions(dotPlayer, dotNpc)
-                        dotDirection = dotNpc.futureMoves.pop()
-                        dotTurnOver = False
+                        dotPlaying['futureMoves'] = ga.npcGaActions(dotPlayer['dot'], dotPlaying['dot'])
+                        dotPlaying['direction'] = dotPlaying['futureMoves'].pop()
+                        turn['isOver'] = False
                 else:
-                    dotDirection = dotNpc.futureMoves.pop()
+                    dotPlaying['direction'] = dotPlaying['futureMoves'].pop()
             else:
-                dotDirection, dotAtkType, dotTurnOver = npcRandomActions(dotNpc.atkTypes)
+                dotPlaying['direction'], dotPlaying['atkType'], turn['isOver'] = npcRandomActions(dotPlaying['dot'].atkTypes)
+
         else:
-            ret, dotDirection, dotAtkType, dotTurnOver = getPlayerAction()
+            dotPlaying = turnControl['dots'][0]
+            ret, dotPlaying['direction'], dotPlaying['atkType'], turn['isOver'] = getPlayerAction()
 
             if ret:
                 return #
 
-        # TODO: are there cases in which dotCanMove = False but dotDirection is set to anything?
-        if not dotCanMove:  # if cannot move, doesn't matter if he wants
-            dotDirection = None
-
-        if not dotCanAtk:  # if cannot atk, doesn't matter if he wants
-            dotAtkType = None
-
         # Get turn results
-        turnResult, turnFlag = doDotTurn(dotPlayer, dotNpc, dotDirection, dotTurn, dotAtkType)
+        turnResult, dotsKilled = doDotTurn(turnControl)  # turnControl has inside both dotPlayer and dotPlaying
 
-        if not turnFlag:
-            if turnResult == config.TURN_MOVE_FAIL_OB:
-                pass
-            elif turnResult == config.TURN_MOVE_FAIL_MP:
-                # force player/npc to atk or pass turn
-                dotCanMove = False
-            elif turnResult == config.TURN_ATK_FAIL:
-                # force player/npc to move or pass turn
-                dotCanAtk = False
-            # Because the attack was unsuccessful (move or attack failed), start turn again
-            # Note that we restart the turn but with the same flags recently modified
+        if turnResult == config.TURN_MOVE_FAIL_OB:
             continue
-        else:
-            if turnResult == config.TURN_ATK_KILLA:  # Game is over, okay?
-                return #
+        elif turnResult == config.TURN_MOVE_FAIL_MP:
+            # force player/npc to atk or pass turn
+            dotPlaying['canMove'] = False
+            continue
+        elif turnResult == config.TURN_ATK_FAIL:
+            # force player/npc to move or pass turn
+            dotPlaying['canAtk'] = False
+            continue
+        elif turnResult == config.TURN_OK:
+            if turn['totalDots'] - dotsKilled == 1:
+                return # Game is over...
 
         # Change turn
-        if dotTurnOver:
-            if dotTurn:
-                print("\t{} passes the turn over to {}.".format(dotPlayer.name, dotNpc.name))
-            else:
-                print("\t{} passes the turn over to {}.".format(dotNpc.name, dotPlayer.name))
+        if turn['isOver']:
+            # Increment counter
+            counter['number'] += 1
+            # Define next dot to play
+            turn['id'] = (turn['id'] + 1) % turn['totalDots']
+            dotPlayingNext = turnControl['dots'][turn['id']]
+            turn['dot'] = dotPlayingNext['dot'].name
 
-            turnCounter += 1  # Increment counter
-            showedTurnCounter = False  # Last log message wasn't counter
-            dotTurn = not dotTurn  # Changes turn flag
+            print("\t{} passes the turn over to {}.".format(dotPlaying['dot'].name, dotPlayingNext['dot'].name))
 
-            # New turn, anyone can move/atk
-            dotCanMove = True
-            dotCanAtk = True
+            counter['showed'] = False  # Last log message wasn't counter
+
+            dotPlayingNext['canMove'] = True
+            dotPlayingNext['canAtk'] = True
 
             # Regenerate status
-            dotPlayer.regenerateMP()
-            dotPlayer.regenerateAP()
-            dotNpc.regenerateMP()
-            dotNpc.regenerateAP()
+            for dot in dots:
+                dot.regenerateMP()
+                dot.regenerateAP()
 
-        drawGameWindow(dots=[dotPlayer, dotNpc])
+        drawGameWindow(dots)
 
 
 def drawGameWindow(dots, attacking=False, atkInfo=None):
@@ -196,73 +199,89 @@ def dotAttack(dotPlayingCoords, dotWaitingCoords, atkType, rangeAtk):
         return False
 
 
-def doDotTurn(player, npc, dotDirection, dotTurn, dotAtkType):
+def doDotTurn(turnControl):
 
-    dotPlaying = npc
-    dotWaiting = player
+    dots = [dot for dot in turnControl['dots']]
+    dotsKilled = 0
 
-    if dotTurn:
-        dotPlaying = player
-        dotWaiting = npc
+    turn = turnControl['turn']
 
-    previousPos = dotPlaying.position.copy()
+    if turn['id']:
+        whichDotIsPlaying = turn['id'] % turn['totalDots']
+        dotPlaying = dots[whichDotIsPlaying]
+        dotsWaiting = [dot['dot'] for dot in dots if dot['dot'] != dotPlaying]  # Get all dots except the dotPlaying
+    else:
+        dotPlaying = dots[0]
+        dotsWaiting = [dot['dot'] for dot in dots[1:]]  # Iterate through remaining dots (all npcs)
 
-    if dotAtkType:  # if players wants to atk (npc atk is always set randomly in its, player not) (for now
+    if not dotPlaying['canMove']:
+        dotPlaying['direction'] = None
 
-        rangeAtk = dotPlaying.atkTypes[dotAtkType][0]
-        costAtk = dotPlaying.atkTypes[dotAtkType][2]
+    if not dotPlaying['canAtk']:
+        dotPlaying['atkType'] = None
 
-        hit = dotAttack(dotPlaying.position, dotWaiting.position, dotAtkType, rangeAtk)
+    previousPos = dotPlaying['dot'].position.copy()
 
-        if dotPlaying.actionPoints >= costAtk:
-            dotPlaying.actionPoints -= costAtk
+    if dotPlaying['atkType']:
+
+        rangeAtk = dotPlaying['dot'].atkTypes[dotPlaying['atkType']][0]
+        costAtk = dotPlaying['dot'].atkTypes[dotPlaying['atkType']][2]
+
+        hits = []
+        for dotWaiting in dotsWaiting:
+            hit = dotAttack(dotPlaying['dot'].position, dotWaiting.position, dotPlaying['atkType'], rangeAtk)
+            hits.append((hit, dotWaiting))
+
+        if dotPlaying['dot'].actionPoints >= costAtk:
+            dotPlaying['dot'].actionPoints -= costAtk
         else:
-            print("\t{} couldn't attack: low action points.".format(dotPlaying.name))
-            return config.TURN_ATK_FAIL, False
+            print("\t{} couldn't attack: low action points.".format(dotPlaying['dot'].name))
+            return config.TURN_ATK_FAIL, dotsKilled
 
         # actualize window to show attack (need this here because we need to draw attack)
         # TODO: would exist a way to draw attack like we draw a movement? i.e., at the end of runGame
-        drawGameWindow(dots=[player, npc], attacking=True, atkInfo=[dotPlaying.position, dotAtkType, rangeAtk])
+        drawGameWindow(dots=[dot['dot'] for dot in dots], attacking=True, atkInfo=[dotPlaying['dot'].position, dotPlaying['atkType'], rangeAtk])
 
-        if hit:
-            damage = dotPlaying.atkTypes[dotAtkType][1]
+        for hit, dotHit in hits:
+            if hit:
+                damage = dotPlaying['dot'].atkTypes[dotPlaying['atkType']][1]
 
-            print("\t{} attacked {}ly {} and infriges {} damage points (now with {} VPs).".
-                  format(dotPlaying.name, dotAtkType, dotWaiting.name, damage, dotWaiting.vitalityPoints - damage))
+                dotHit.vitalityPoints -= damage
 
-            dotWaiting.vitalityPoints -= damage
+                print("\t{} attacked {}ly {} and infriges {} damage points (now with {} VPs).".
+                      format(dotPlaying['dot'].name, dotPlaying['atkType'], dotHit.name, damage, dotHit.vitalityPoints))
 
-            if dotWaiting.vitalityPoints <= 0:
-                print("\t{} fucking killed {}, man. Well done, well done.".format(dotPlaying.name, dotWaiting.name))
-                return config.TURN_ATK_KILLA, True
+                if dotHit.vitalityPoints <= 0:
+                    print("\t{} fucking killed {}, man. Well done, well done.".format(dotPlaying['dot'].name, dotHit.name))
+                    dotsKilled += 1
 
-        else:
-            print("\t{} attacked {}ly {} but missed.".
-                  format(dotPlaying.name, dotAtkType, dotWaiting.name))
+            else:
+                print("\t{} attacked {}ly {} but missed.".
+                      format(dotPlaying['dot'].name, dotPlaying['atkType'], dotHit.name))
 
-        print("\t\t... its action points goes to {}.".format(dotPlaying.actionPoints))
+        print("\t\t... its action points goes to {}.".format(dotPlaying['dot'].actionPoints))
     # move the dot in the direction it is moving, obviously
-    elif dotDirection:
+    elif dotPlaying['direction']:
 
-        if not dotPlaying.movementPoints:  # if mp is 0, dot can't move
-            print("\t{} couldn't move: low movement points.".format(dotPlaying.name))
-            return config.TURN_MOVE_FAIL_MP, False
+        if not dotPlaying['dot'].movementPoints:  # if mp is 0, dot can't move
+            print("\t{} couldn't move: low movement points.".format(dotPlaying['dot'].name))
+            return config.TURN_MOVE_FAIL_MP, dotsKilled
 
-        moveResult = dotMove(dotDirection, dotPlaying.position)  # only false at first game start (and if not atk, will move)
+        moveResult = dotMove(dotPlaying['direction'], dotPlaying['dot'].position)  # only false at first game start (and if not atk, will move)
 
         if moveResult:
-            dotPlaying.movementPoints -= 1
-            print("\t{} moves from ({}, {}) to ({}, {}).".format(dotPlaying.name,
+            dotPlaying['dot'].movementPoints -= 1
+            print("\t{} moves from ({}, {}) to ({}, {}).".format(dotPlaying['dot'].name,
                                                 previousPos['x'], previousPos['y'],
-                                                dotPlaying.position['x'], dotPlaying.position['y']))
-            print("\t\t... its movement points goes to {}.".format(dotPlaying.movementPoints))
+                                                dotPlaying['dot'].position['x'], dotPlaying['dot'].position['y']))
+            print("\t\t... its movement points goes to {}.".format(dotPlaying['dot'].movementPoints))
         else:
-            print("\t{}: movement to off the board is invalid. Try again.".format(dotPlaying.name))
-            return config.TURN_MOVE_FAIL_OB, False
+            print("\t{}: movement to off the board is invalid. Try again.".format(dotPlaying['dot'].name))
+            return config.TURN_MOVE_FAIL_OB, dotsKilled
     else:
-        print("\t{} stays at ({}, {}).".format(dotPlaying.name, dotPlaying.position['x'], dotPlaying.position['y']))
+        print("\t{} stays at ({}, {}).".format(dotPlaying['dot'].name, dotPlaying['dot'].position['x'], dotPlaying['dot'].position['y']))
 
-    return config.TURN_OK, True
+    return config.TURN_OK, dotsKilled
 
 
 def getPlayerAction(dotDirection=None, dotAtkType=None, dotTurnOver=False):

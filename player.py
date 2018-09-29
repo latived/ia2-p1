@@ -17,7 +17,6 @@ class Player():
         self.vitalityPoints = vitalityPoints
         self.actionPoints = self.getMaximumAP()
         self.movementPoints = movPoints
-        self.futureMoves = []
         self.dotType = self._setDotType(dotType)
 
 
@@ -34,8 +33,8 @@ class Player():
 
     def regenerateAP(self):
         if self.actionPoints < self.getMaximumAP():
-            print("\t{} regenerates 1 action point: {} now.".format(self.name, self.actionPoints))
             self.actionPoints += 1
+            print("\t{} regenerates 1 action point: {} now.".format(self.name, self.actionPoints))
 
 
     def getMaximumAP(self):
