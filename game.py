@@ -47,12 +47,12 @@ def runGame():
     turnCounter = 1  # initialize counter
     showedTurnCounter = False  # controls if turn log can be show (actualized)
 
+    # Who controls NPC actions?
     npcGaControlled = True  # set up random actions or ga controlled actions
 
-    while True: # main game loop
+    drawGameWindow(dotPlayer, dotNpc)
 
-        if turnCounter == 1:
-            drawGameWindow(dotPlayer, dotNpc)
+    while True: # main game loop
 
         ret, dotDirection, dotAtkType, dotTurnOver = getPlayerAction(dotTurn)
 
