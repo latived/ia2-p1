@@ -54,17 +54,17 @@ def runGame():
 
     while True: # main game loop
 
-        ret, dotDirection, dotAtkType, dotTurnOver = getPlayerAction(dotTurn)
-
-        if ret:
-            return #
-
         # Checks if has showed counter previously
         if not showedTurnCounter:
             print("Turn {}".format(turnCounter))
             print("\t* {} points: {} VP, {} AP, {} MP.".format(dotPlayer.name, dotPlayer.vitalityPoints, dotPlayer.actionPoints, dotPlayer.movementPoints))
             print("\t* {} points: {} VP, {} AP, {} MP.".format(dotNpc.name, dotNpc.vitalityPoints, dotNpc.actionPoints, dotNpc.movementPoints))
             showedTurnCounter = True
+
+        ret, dotDirection, dotAtkType, dotTurnOver = getPlayerAction(dotTurn)
+
+        if ret:
+            return #
 
         # Checks for who is playing
         if not dotTurn:
