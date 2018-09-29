@@ -2,10 +2,11 @@
 # By Al Sweigart al@inventwithpython.com
 # http://inventwithpython.com/pygame
 # Released under a "Simplified BSD" license
+#
+# Adapted by latived
 
 import random, pygame, sys, time
 
-# from pygame.locals import *
 import pygame.locals as pl
 
 import config, ga
@@ -61,10 +62,7 @@ def runGame():
             print("\t* {} points: {} VP, {} AP, {} MP.".format(dotNpc.name, dotNpc.vitalityPoints, dotNpc.actionPoints, dotNpc.movementPoints))
             showedTurnCounter = True
 
-        ret, dotDirection, dotAtkType, dotTurnOver = getPlayerAction(dotTurn)
-
-        if ret:
-            return #
+        dotDirection, dotAtkType, dotTurnOver = None, None, None  # Just for remove warnings...
 
         # Checks for who is playing
         if not dotTurn:
@@ -84,7 +82,13 @@ def runGame():
                     dotDirection = dotNpc.futureMoves.pop()
             else:
                 dotDirection, dotAtkType, dotTurnOver = npcRandomActions(dotNpc.atkTypes)
+        else:
+            ret, dotDirection, dotAtkType, dotTurnOver = getPlayerAction()
 
+            if ret:
+                return #
+
+        # TODO: are there cases in which dotCanMove = False but dotDirection is set to anything?
         if not dotCanMove:  # if cannot move, doesn't matter if he wants
             dotDirection = None
 
@@ -251,9 +255,9 @@ def doDotTurn(player, npc, dotDirection, dotTurn, dotAtkType):
     return config.TURN_OK, True
 
 
-def getPlayerAction(dotTurn, dotDirection=None, dotAtkType=None, dotTurnOver=False):
+def getPlayerAction(dotDirection=None, dotAtkType=None, dotTurnOver=False):
     # If game started and is player turn, wait event (move or attack or pass over the turn)
-    while dotTurn and not dotDirection and not dotAtkType and not dotTurnOver:
+    while not dotDirection and not dotAtkType and not dotTurnOver:
         for event in pygame.event.get(): # event handling loop
             if event.type == pl.MOUSEBUTTONUP:
                 if config.G_QUIT_RECT.collidepoint(event.pos):
@@ -283,6 +287,7 @@ def getPlayerAction(dotTurn, dotDirection=None, dotAtkType=None, dotTurnOver=Fal
                 elif event.key == pl.K_ESCAPE:
                     terminate()
 
+    # Needed?
     return False, dotDirection, dotAtkType, dotTurnOver
 
 
