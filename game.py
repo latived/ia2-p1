@@ -38,7 +38,7 @@ def main():
 def runGame():
 
     # Setting up player and NPC
-    dotPlayer = Player('latived', getRandomLocation(xby=True), 'pl1')
+    dotPlayer = Player('latived', getRandomLocation(xby=True), 'pl1')  # Last parameter defines dotType
     dotNpc = Player('npc_01', getRandomLocation(ybx=True), 'nl1')
 
     # Setting up some control variables
@@ -51,7 +51,7 @@ def runGame():
     # Who controls NPC actions?
     npcGaControlled = True  # set up random actions or ga controlled actions
 
-    drawGameWindow(dotPlayer, dotNpc)
+    drawGameWindow(dots=[dotPlayer, dotNpc])
 
     while True: # main game loop
 
@@ -62,7 +62,7 @@ def runGame():
             print("\t* {} points: {} VP, {} AP, {} MP.".format(dotNpc.name, dotNpc.vitalityPoints, dotNpc.actionPoints, dotNpc.movementPoints))
             showedTurnCounter = True
 
-        dotDirection, dotAtkType, dotTurnOver = None, None, None  # Just for remove warnings...
+        dotDirection, dotAtkType, dotTurnOver = None, None, None  # Just to remove warnings...
 
         # Checks for who is playing
         if not dotTurn:
@@ -135,29 +135,39 @@ def runGame():
             dotNpc.regenerateMP()
             dotNpc.regenerateAP()
 
-        drawGameWindow(dotPlayer, dotNpc)
+        drawGameWindow(dots=[dotPlayer, dotNpc])
 
 
-def drawGameWindow(dotPlayer, dotNpc, attacking=False, atkInfo=None):
+def drawGameWindow(dots, attacking=False, atkInfo=None):
+
     config.G_DISPLAY_SURF.fill(config.BGCOLOR)
 
     drawGrid()
 
-    drawDotPlayer(dotPlayer.position)
-    drawNpcPlayer(dotNpc.position)
+    namePosGapY = 0
+    lineStartGapY = 0
+    lineEndGapY = 0
 
-    drawStatus(dotPlayer, config.BOARD_WIDTH + 10, 20,
-               (config.BOARD_WIDTH + 10, 50),
-               (config.BOARD_WIDTH + 150, 50))
-    drawStatus(dotNpc, config.BOARD_WIDTH + 10, config.BOARD_HEIGHT//2,
-               (config.BOARD_WIDTH + 10, config.BOARD_HEIGHT//2 + 30),
-               (config.BOARD_WIDTH + 150, config.BOARD_HEIGHT//2 + 30))
+    nDots = len(dots)
+
+    for dot in dots:
+        # Draw the dot (dotType is used to modify the dot draw)
+        # TODO: modify NPCs dot colors somehow (new parameter dotBeauty?)
+        drawDot(dot.position, dot.dotType)
+        drawStatus(player=dot,
+                   namePosx=config.BOARD_WIDTH + 10,
+                   namePosy=20 + namePosGapY,
+                   lineStart=(config.BOARD_WIDTH + 10, 50 + lineStartGapY),
+                   lineEnd=(config.BOARD_WIDTH + 150, 50 + lineEndGapY))
+        namePosGapY += config.BOARD_HEIGHT//nDots
+        lineStartGapY += config.BOARD_HEIGHT//nDots
+        lineEndGapY += config.BOARD_HEIGHT//nDots
 
     drawOptions()
 
     if attacking:
-        dotAtkType, rangeAtk = atkInfo
-        drawAttack(dotPlayer.position, dotAtkType, rangeAtk)
+        dotPlayingPos, dotAtkType, rangeAtk = atkInfo
+        drawAttack(dotPlayingPos, dotAtkType, rangeAtk)
         pygame.display.update()
         time.sleep(0.5)
     else:
@@ -212,7 +222,7 @@ def doDotTurn(player, npc, dotDirection, dotTurn, dotAtkType):
 
         # actualize window to show attack (need this here because we need to draw attack)
         # TODO: would exist a way to draw attack like we draw a movement? i.e., at the end of runGame
-        drawGameWindow(player, npc, attacking=True, atkInfo=[dotAtkType, rangeAtk])
+        drawGameWindow(dots=[player, npc], attacking=True, atkInfo=[dotPlaying.position, dotAtkType, rangeAtk])
 
         if hit:
             damage = dotPlaying.atkTypes[dotAtkType][1]
@@ -551,20 +561,17 @@ def drawAttack(dotPlayingCoords, atkType, atkRange):
         pygame.draw.rect(config.G_DISPLAY_SURF, config.BLUE, dotInnerSegmentRect)
 
 
-def drawDotPlayer(playerCoords):
-    x = playerCoords['x'] * config.CELL_SIZE
-    y = playerCoords['y'] * config.CELL_SIZE
+def drawDot(dotCoords, dotType):
+    x = dotCoords['x'] * config.CELL_SIZE
+    y = dotCoords['y'] * config.CELL_SIZE
     dotSegmentRect = pygame.Rect(x, y, config.CELL_SIZE, config.CELL_SIZE)
-    pygame.draw.rect(config.G_DISPLAY_SURF, config.DARKGREEN, dotSegmentRect)
-    dotInnerSegmentRect = pygame.Rect(x + 4, y + 4, config.CELL_SIZE - 8, config.CELL_SIZE - 8)
-    pygame.draw.rect(config.G_DISPLAY_SURF, config.GREEN, dotInnerSegmentRect)
 
-
-def drawNpcPlayer(npcCoords):
-    x = npcCoords['x'] * config.CELL_SIZE
-    y = npcCoords['y'] * config.CELL_SIZE
-    npcRect = pygame.Rect(x, y, config.CELL_SIZE, config.CELL_SIZE)
-    pygame.draw.rect(config.G_DISPLAY_SURF, config.RED, npcRect)
+    if dotType == 'player':
+        pygame.draw.rect(config.G_DISPLAY_SURF, config.DARKGREEN, dotSegmentRect)
+        dotInnerSegmentRect = pygame.Rect(x + 4, y + 4, config.CELL_SIZE - 8, config.CELL_SIZE - 8)
+        pygame.draw.rect(config.G_DISPLAY_SURF, config.GREEN, dotInnerSegmentRect)
+    else:
+        pygame.draw.rect(config.G_DISPLAY_SURF, config.RED, dotSegmentRect)
 
 
 def drawGrid():

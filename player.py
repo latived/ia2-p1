@@ -13,12 +13,19 @@ class Player():
     def __init__(self, name, location, dotType, vitalityPoints=START_VP, movPoints=START_MP):
         self.name = name
         self.position = location
-        self.atkTypes = self.__selectAtkTypes(dotType)
+        self.atkTypes = self._selectAtkTypes(dotType)
         self.vitalityPoints = vitalityPoints
         self.actionPoints = self.getMaximumAP()
         self.movementPoints = movPoints
         self.futureMoves = []
+        self.dotType = self._setDotType(dotType)
 
+
+    def _setDotType(self, dotType):
+        if dotType[0] == 'p':
+            return "player"
+        else:
+            return "npc"
 
     def regenerateMP(self):
         self.movementPoints = START_MP
@@ -37,7 +44,7 @@ class Player():
         return sum(higherAtksCost[:2]) - 1
 
 
-    def __selectAtkTypes(self, dotType):
+    def _selectAtkTypes(self, dotType):
         atk = None
 
         if dotType == 'pl1':
