@@ -114,8 +114,19 @@ def runGame():
             dotPlaying['canAtk'] = False
             continue
         elif turnResult == config.TURN_OK:
-            if turn['totalDots'] - dotsKilled == 1:
+
+            turn['totalDots'] -= len(dotsKilled)
+
+            if (turn['totalDots'] == 1) or (turnControl['dots'][0]['dot'] in dotsKilled):
+                drawGameWindow(dots)
                 return # Game is over...
+
+            for dot in dotsKilled:
+                if dot in dots:
+                    dots.remove(dot)
+                for dotInfo in turnControl['dots']:
+                    if dotInfo['dot'] == dot:
+                        turnControl['dots'].remove(dotInfo)
 
         # Change turn
         if turn['isOver']:
@@ -202,14 +213,14 @@ def dotAttack(dotPlayingCoords, dotWaitingCoords, atkType, rangeAtk):
 def doDotTurn(turnControl):
 
     dots = [dot for dot in turnControl['dots']]
-    dotsKilled = 0
+    dotsKilled = []
 
     turn = turnControl['turn']
 
     if turn['id']:
         whichDotIsPlaying = turn['id'] % turn['totalDots']
         dotPlaying = dots[whichDotIsPlaying]
-        dotsWaiting = [dot['dot'] for dot in dots if dot['dot'] != dotPlaying]  # Get all dots except the dotPlaying
+        dotsWaiting = [dot['dot'] for dot in dots if dot['dot'] != dotPlaying['dot']]  # Get all dots except the dotPlaying
     else:
         dotPlaying = dots[0]
         dotsWaiting = [dot['dot'] for dot in dots[1:]]  # Iterate through remaining dots (all npcs)
@@ -253,7 +264,7 @@ def doDotTurn(turnControl):
 
                 if dotHit.vitalityPoints <= 0:
                     print("\t{} fucking killed {}, man. Well done, well done.".format(dotPlaying['dot'].name, dotHit.name))
-                    dotsKilled += 1
+                    dotsKilled.append(dotHit)
 
             else:
                 print("\t{} attacked {}ly {} but missed.".

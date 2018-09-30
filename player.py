@@ -5,7 +5,7 @@ Created by lativ on 19/08/18 at 07:02
 """
 
 # Set a random start point for dot and NPC-dot
-START_VP = 100  # Vitality points
+START_VP = 20  # Vitality points
 START_MP = 10   # Move points
 
 class Player():
