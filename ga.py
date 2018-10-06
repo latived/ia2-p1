@@ -6,9 +6,12 @@ Created by lativ on 21/08/18 at 09:04
 import random
 import copy
 import config
+import queue
 
 POPULATION_LIMT = 100
 EPOCH_LIMIT = 50
+
+BUFFER_XY = queue.Queue()
 
 def npcGaActions(dotPlayer, dotNpc):
     """
@@ -231,6 +234,8 @@ def checkForOptimalIndividual(population, dotPlayer, dotNpc):
 
 def computeIndividualsFitness(population, dotPlayerCoords, cutInHalf=True):
 
+    print("debug fitness: ", BUFFER_XY.qsize()) # debug
+
     px = dotPlayerCoords['x']
     py = dotPlayerCoords['y']
 
@@ -319,3 +324,12 @@ def isAttackPossible(dotPlayer, dotNpc):
     # npc can atk but have low action points if atkType != None
 
     return canAtk, atkType
+
+
+def savePosition(xy):
+    print("debug save: ", xy) # debug
+    BUFFER_XY.put(xy)
+
+
+def getPosition(xy):
+    return BUFFER_XY.get()

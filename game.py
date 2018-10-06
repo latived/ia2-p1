@@ -130,6 +130,10 @@ def runGame():
 
         # Change turn
         if turn['isOver']:
+            # Save npc position at ga buffer
+            if turn['id']:
+                ga.savePosition(dotPlaying['dot'].position)
+
             # Increment counter
             counter['number'] += 1
             # Define next dot to play
