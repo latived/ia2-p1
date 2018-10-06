@@ -234,10 +234,21 @@ def checkForOptimalIndividual(population, dotPlayer, dotNpc):
 
 def computeIndividualsFitness(population, dotPlayerCoords, cutInHalf=True):
 
-    print("debug fitness: ", BUFFER_XY.qsize()) # debug
-
     px = dotPlayerCoords['x']
     py = dotPlayerCoords['y']
+
+    # buffer last NPC position
+    xy = None
+    try:
+        xy = BUFFER_XY.get(block=False)
+    except queue.Empty:
+        pass
+
+    bx = 0
+    by = 0
+    if xy:
+        bx = xy['x']
+        by = xy['y']
 
     populationRanked = []
 
@@ -245,6 +256,13 @@ def computeIndividualsFitness(population, dotPlayerCoords, cutInHalf=True):
         ix = individual['x']
         iy = individual['y']
         fitness = min(abs(px - ix), abs(py - iy))
+        # adding last NPC position to the equation
+        if bx == by == 0:
+            bfFitness = 0  # because there is only one NPC in the game it doesn't make sense to use BUFFER_XY
+        else:
+            bfFitness = min(abs(bx - ix), abs(by - iy))
+        # fitness is previous fitness plus bufferFitness (new position mustn't be close to last NPC position)
+        fitness += bfFitness
         populationRanked.append((fitness, individual))
 
     # 2nd step
